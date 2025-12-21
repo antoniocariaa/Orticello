@@ -1,21 +1,18 @@
 <script setup>
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <div class="p-10"> <div class="box mb-4">
-       <button class="btn btn-primary">Test Button</button>
+  <div class="min-h-screen bg-base-200 font-sans overflow-x-hidden">
+    <!-- Simple Navbar if needed in future, currently just content -->
+    <div class="navbar bg-base-100 shadow-sm w-full">
+      <div class="flex-1">
+        <a class="btn btn-ghost text-xl text-primary font-bold">Orticello</a>
+      </div>
     </div>
-    
-    <h1 class="text-2xl font-bold mb-4">You did it!</h1>
-    
-    <div role="alert" class="alert alert-success">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span>Your purchase has been confirmed!</span>
-      
-    </div>
-    <button class="btn btn-secondary">Secondary</button>
 
+    <div class="w-full px-4 flex justify-center items-start pt-10 pb-10">
+       <RouterView />
+    </div>
   </div>
 </template>
