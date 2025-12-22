@@ -82,6 +82,8 @@ onMounted(async () => {
     await Promise.all([fetchOrti(), fetchAffidamenti(), fetchAssociazioni()])
 })
 
+const viewMode = ref('map') // 'map' or 'list'
+
 const openAddModal = () => {
     isEditMode.value = false
     editingId.value = null
@@ -167,6 +169,21 @@ const showToast = (message, type = 'success') => {
     }, 3000)
 }
 
+const getAssociazioneName = (ortoId) => {
+    const assignment = affidamenti.value.find(a => (a.orto === ortoId || a.orto?._id === ortoId))
+    if (!assignment) return null
+    
+    // Check if associazione is populated
+    if (assignment.associazione && assignment.associazione.nome) {
+        return assignment.associazione.nome
+    }
+    
+    // If only ID, find in associazioni list
+    const assocId = assignment.associazione?._id || assignment.associazione
+    const assoc = associazioni.value.find(a => (a._id || a.id) === assocId)
+    return assoc ? assoc.nome : 'Associazione sconosciuta'
+}
+
 const saveOrto = async () => {
     loading.value = true
     try {
@@ -239,16 +256,36 @@ const saveOrto = async () => {
 </script>
 
 <template>
-  <div class="p-6 h-[calc(100vh-64px)] w-full flex flex-col items-center gap-4">
+  <div class="p-6 min-h-[calc(100vh-64px)] w-full flex flex-col items-center gap-4">
       
-      <div class="flex justify-between w-full max-w-5xl items-center">
-          <h1 class="text-3xl font-bold text-primary">🗺️ Mappa Orti</h1>
+      <div class="flex justify-between w-full max-w-5xl items-end">
+          <div class="flex flex-col gap-3">
+              <h1 class="text-3xl font-bold text-primary">Orti a Trento</h1>
+              <!-- Toggle View -->
+              <div class="join">
+                <button 
+                    class="btn btn-sm join-item" 
+                    :class="viewMode === 'map' ? 'btn-active btn-neutral' : ''"
+                    @click="viewMode = 'map'"
+                >
+                    Mappa
+                </button>
+                <button 
+                    class="btn btn-sm join-item" 
+                    :class="viewMode === 'list' ? 'btn-active btn-neutral' : ''"
+                    @click="viewMode = 'list'"
+                >
+                    Lista
+                </button>
+              </div>
+          </div>
           <button @click="openAddModal" class="btn btn-primary gap-2">
              <span class="text-xl">+</span> Aggiungi Orto
           </button>
       </div>
 
-      <div class="card bg-base-100 shadow-xl w-full max-w-5xl h-[600px] border border-base-200 overflow-hidden relative z-0">
+      <!-- Map View -->
+      <div v-show="viewMode === 'map'" class="card bg-base-100 shadow-xl w-full max-w-5xl h-[600px] border border-base-200 overflow-hidden relative z-0">
           <l-map ref="map" v-model:zoom="zoom" :center="center" :use-global-leaflet="false">
             <l-tile-layer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -288,6 +325,61 @@ const saveOrto = async () => {
                 </l-popup>
             </l-marker>
           </l-map>
+      </div>
+
+      <!-- List View -->
+      <div v-if="viewMode === 'list'" class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+<div v-for="orto in orti" :key="orto._id || orto.id" class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow">
+  <div class="card-body p-6">
+    <!-- Status Badge at Top -->
+    <div class="mb-3">
+      <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-success text-white' : 'badge-error text-white'">
+        {{ isAssigned(orto._id || orto.id) ? 'Assegnato' : 'Libero' }}
+      </span>
+    </div>
+
+    <!-- Title -->
+    <h2 class="card-title text-primary mb-3">
+      {{ orto.nome }}
+    </h2>
+    
+    <!-- Association Name -->
+    <div class="mb-3">
+      <div v-if="isAssigned(orto._id || orto.id)" class="flex items-center gap-2 text-sm">
+        <span class="text-lg">🤝</span>
+        <span class="font-medium text-secondary">{{ getAssociazioneName(orto._id || orto.id) }}</span>
+      </div>
+      <div v-else class="flex items-center gap-2 text-sm text-gray-500">
+        <span class="text-lg">🤝</span>
+        <span class="italic">Nessuna</span>
+      </div>
+    </div>
+    
+    <!-- Address -->
+    <div class="flex items-start gap-2 text-sm text-gray-600 mb-3">
+      <span class="text-base">📍</span>
+      <span>{{ orto.indirizzo }}</span>
+    </div>
+    
+    <!-- Lotti Badge -->
+    <div class="mb-4">
+      <div class="badge badge-ghost badge-sm">
+        Lotti: {{ orto.lotti?.length || 0 }}
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="card-actions justify-end">
+      <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning gap-1">
+        ✏️ Modifica
+      </button>
+    </div>
+  </div>
+</div>
+          
+          <div v-if="orti.length === 0" class="col-span-full text-center py-10 opacity-50">
+              Nessun orto presente.
+          </div>
       </div>
 
     <!-- Modal -->

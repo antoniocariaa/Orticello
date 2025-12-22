@@ -23,8 +23,7 @@ const login = async () => {
     // Save token
     localStorage.setItem('token', data.token)
     
-    // Fetch full user details (including 'tipo') because login response might only be partial
-    // assuming data.id is available, otherwise we might need to decode token
+    // Fetch full user details
     const userId = data.id 
     
     const user = await api.get(`/utenti/${userId}`)
@@ -36,7 +35,7 @@ const login = async () => {
     router.push('/')
   } catch (err) {
     error.value = err.message
-    // If fetching user fails after token is set, we should probably clear token
+    // Clear token if login fails
     if (localStorage.getItem('token') && !store.isAuthenticated) {
         localStorage.removeItem('token')
     }
