@@ -1,0 +1,13 @@
+
+> orticellofrontend@0.0.0 lint
+> eslint . --fix --cache
+
+
+C:\Users\faizanali\Desktop\Orticello\src\App.vue
+  155:3  error  Parsing error: x-invalid-end-tag  vue/no-parsing-error
+
+C:\Users\faizanali\Desktop\Orticello\src\views\cittadino\Avvisi.vue
+  1:1  error  Component name "Avvisi" should always be multi-word  vue/multi-word-component-names
+
+✖ 2 problems (2 errors, 0 warnings)
+

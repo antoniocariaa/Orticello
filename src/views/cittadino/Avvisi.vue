@@ -1,3 +1,9 @@
+<script>
+export default {
+  name: 'AvvisiCittadino'
+}
+</script>
+
 <template>
   <div class="card bg-base-100 shadow-xl max-w-4xl mx-auto">
     <div class="card-body">

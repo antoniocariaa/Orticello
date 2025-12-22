@@ -41,6 +41,37 @@ const router = createRouter({
             name: 'register',
             component: RegisterView
         },
+        // Comune Routes
+        {
+            path: '/comune/dashboard',
+            name: 'comune-dashboard',
+            component: () => import('../views/comune/HomeComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/comune/associazioni',
+            name: 'comune-associazioni',
+            component: () => import('../views/comune/AssociazioniComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/comune/avvisi',
+            name: 'comune-avvisi',
+            component: () => import('../views/comune/AvvisiComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/comune/avvisi',
+            name: 'comune-avvisi',
+            component: () => import('../views/comune/AvvisiComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/comune/mappa',
+            name: 'comune-mappa',
+            component: () => import('../views/comune/MappaComune.vue'),
+            meta: { requiresAuth: true }
+        },
         {
             path: '/:pathMatch(.*)*',
             redirect: '/'
