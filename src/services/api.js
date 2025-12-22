@@ -1,4 +1,4 @@
-const BASE_URL = '/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 async function request(endpoint, options = {}) {
     const token = localStorage.getItem('token');
@@ -9,7 +9,7 @@ async function request(endpoint, options = {}) {
     };
 
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['x-access-token'] = token;
     }
 
     const config = {
