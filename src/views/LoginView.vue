@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import { store } from '../store'
 
 const router = useRouter()
 
@@ -21,12 +22,24 @@ const login = async () => {
 
     // Save token
     localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify({ email: data.email, id: data.id }))
+    
+    // Fetch full user details (including 'tipo') because login response might only be partial
+    // assuming data.id is available, otherwise we might need to decode token
+    const userId = data.id 
+    
+    const user = await api.get(`/utenti/${userId}`)
+    
+    localStorage.setItem('user', JSON.stringify(user))
+    store.setUser(user)
 
     // Redirect to home or dashboard
     router.push('/')
   } catch (err) {
     error.value = err.message
+    // If fetching user fails after token is set, we should probably clear token
+    if (localStorage.getItem('token') && !store.isAuthenticated) {
+        localStorage.removeItem('token')
+    }
   } finally {
     loading.value = false
   }

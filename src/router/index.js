@@ -12,6 +12,25 @@ const router = createRouter({
             component: HomeView,
             meta: { requiresAuth: true }
         },
+        // Cittadino Routes
+        {
+            path: '/cittadino/orto',
+            name: 'your-garden',
+            component: () => import('../views/cittadino/HomeCittadino.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/cittadino/cerca',
+            name: 'search-garden',
+            component: () => import('../views/cittadino/CercaOrto.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/cittadino/avvisi',
+            name: 'notices',
+            component: () => import('../views/cittadino/Avvisi.vue'),
+            meta: { requiresAuth: true }
+        },
         {
             path: '/login',
             name: 'login',
