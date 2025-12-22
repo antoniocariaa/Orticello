@@ -66,14 +66,62 @@ const formatDate = (dateString) => {
     if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('it-IT')
 }
+
+// Add Association Logic
+const isAddModalOpen = ref(false)
+const isSubmitting = ref(false)
+const newAssociazione = ref({
+    nome: '',
+    indirizzo: '',
+    telefono: '',
+    email: ''
+})
+
+const openAddModal = () => {
+    newAssociazione.value = { nome: '', indirizzo: '', telefono: '', email: '' }
+    isAddModalOpen.value = true
+}
+
+const createAssociazione = async () => {
+    // Basic validation
+    if (!newAssociazione.value.nome || !newAssociazione.value.indirizzo || !newAssociazione.value.telefono || !newAssociazione.value.email) {
+        showToast('Compila tutti i campi obbligatori.', 'error')
+        return
+    }
+
+    isSubmitting.value = true
+    try {
+        await api.post('/associazioni', newAssociazione.value)
+        showToast('Associazione creata con successo!', 'success')
+        isAddModalOpen.value = false
+        fetchData() // Refresh list
+    } catch (e) {
+        console.error('Error creating association:', e)
+        showToast(e.message || 'Errore durante la creazione.', 'error')
+    } finally {
+        isSubmitting.value = false
+    }
+}
+
+// Toast
+const toast = ref({ show: false, message: '', type: 'success' })
+const showToast = (message, type = 'success') => {
+    toast.value = { show: true, message, type }
+    setTimeout(() => toast.value.show = false, 3000)
+}
 </script>
 
 <template>
   <div class="p-6 min-h-[calc(100vh-64px)] w-full flex flex-col items-center gap-6">
     
-    <div class="w-full max-w-6xl">
-        <h1 class="text-3xl font-bold text-primary mb-2">🤝 Associazioni</h1>
-        <p class="text-gray-600">Elenco delle associazioni registrate e dei loro orti gestiti.</p>
+    <div class="w-full max-w-6xl flex justify-between items-end">
+        <div>
+            <h1 class="text-3xl font-bold text-primary mb-2">🤝 Associazioni</h1>
+            <p class="text-gray-600">Elenco delle associazioni registrate e dei loro orti gestiti.</p>
+        </div>
+        <button @click="openAddModal" class="btn btn-primary gap-2">
+            <span class="text-xl">+</span> Aggiungi Associazione
+        </button>
     </div>
 
     <!-- Loading State -->
@@ -201,6 +249,54 @@ const formatDate = (dateString) => {
             <button @click="isModalOpen = false">close</button>
         </form>
     </dialog>
+
+    <!-- Add Association Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isAddModalOpen }">
+        <div class="modal-box w-11/12 max-w-2xl bg-base-100">
+            <h3 class="font-bold text-2xl mb-6 text-center">Aggiungi Nuova Associazione</h3>
+            
+            <form @submit.prevent="createAssociazione" class="flex flex-col gap-4">
+                <div class="form-control">
+                    <label class="label">Nome Associazione</label>
+                    <input v-model="newAssociazione.nome" type="text" class="input input-bordered w-full" placeholder="Es. Amici del Verde" required />
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">Indirizzo</label>
+                    <input v-model="newAssociazione.indirizzo" type="text" class="input input-bordered w-full" placeholder="Via delle Piante 12" required />
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">Telefono</label>
+                        <input v-model="newAssociazione.telefono" type="tel" class="input input-bordered w-full" placeholder="333 1234567" required />
+                    </div>
+                    <div class="form-control">
+                        <label class="label">Email</label>
+                        <input v-model="newAssociazione.email" type="email" class="input input-bordered w-full" placeholder="info@associazione.it" required />
+                    </div>
+                </div>
+
+                <div class="modal-action border-t border-base-200 pt-4 mt-4">
+                    <button type="button" @click="isAddModalOpen = false" class="btn btn-ghost">Annulla</button>
+                    <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                        <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+                        {{ isSubmitting ? 'Salvataggio...' : 'Crea Associazione' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="isAddModalOpen = false">close</button>
+        </form>
+    </dialog>
+
+    <!-- Toast -->
+    <div v-if="toast.show" class="toast toast-end z-[9999]">
+        <div class="alert" :class="toast.type === 'error' ? 'alert-error' : 'alert-success'">
+            <span class="text-white">{{ toast.message }}</span>
+        </div>
+    </div>
 
   </div>
 </template>
