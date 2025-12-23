@@ -233,13 +233,25 @@ const saveOrto = async () => {
             if (!form.value.data_inizio || !form.value.data_fine) {
                 throw new Error('Date inizio e fine obbligatorie per assegnare un\'associazione')
             }
-            
-            await api.post('/affidaOrti', {
-                orto: ortoId,
-                associazione: form.value.associazione,
-                data_inizio: form.value.data_inizio,
-                data_fine: form.value.data_fine
-            })
+
+            const existingAssignment = affidamenti.value.find(a => (a.orto === ortoId || a.orto?._id === ortoId))
+            if(existingAssignment && isEditMode) {
+                // Update existing assignment
+                await api.put(`/affidaOrti/${existingAssignment._id || existingAssignment.id}`, {
+                    orto: ortoId,
+                    associazione: form.value.associazione,
+                    data_inizio: form.value.data_inizio,
+                    data_fine: form.value.data_fine
+                })
+            } else {
+                // New assignment
+                await api.post('/affidaOrti/', {
+                    orto: ortoId,
+                    associazione: form.value.associazione,
+                    data_inizio: form.value.data_inizio,
+                    data_fine: form.value.data_fine
+                })
+            }
         }
         
         isModalOpen.value = false
