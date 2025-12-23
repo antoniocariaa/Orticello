@@ -15,6 +15,7 @@ const isEditMode = ref(false)
 const editingId = ref(null)
 const loading = ref(false)
 const associazioni = ref([])
+const isSelectingCoordinates = ref(false)
 
 const form = ref({
   nome: '',
@@ -89,12 +90,14 @@ const openAddModal = () => {
     editingId.value = null
     form.value = { nome: '', indirizzo: '', lat: '', lng: '', lotti: [], associazione: '', data_inizio: '', data_fine: '' }
     isModalOpen.value = true
+    isSelectingCoordinates.value = false
 }
 
 const openEditModal = async (orto) => {
     isEditMode.value = true
     editingId.value = orto._id || orto.id
     loading.value = true
+    isSelectingCoordinates.value = false
 
     try {
         const assignment = affidamenti.value.find(a => (a.orto === editingId.value || a.orto?._id === editingId.value))
@@ -162,11 +165,29 @@ const toast = ref({
     type: 'success'
 })
 
-const showToast = (message, type = 'success') => {
+const showToast = (message, type = 'success', time = 3000) => {
     toast.value = { show: true, message, type }
     setTimeout(() => {
         toast.value.show = false
-    }, 3000)
+    }, time)
+}
+
+const onMapClick = (event) => {
+    if (isSelectingCoordinates.value) {
+        form.value.lat = event.latlng.lat.toFixed(6)
+        form.value.lng = event.latlng.lng.toFixed(6)
+        isSelectingCoordinates.value = false
+        showToast('Coordinate selezionate dalla mappa', 'success')
+        isModalOpen.value = true;
+    }
+}
+
+const toggleCoordinateSelection = () => {
+    isSelectingCoordinates.value = !isSelectingCoordinates.value
+    if (isSelectingCoordinates.value) {
+        showToast('Clicca sulla mappa per selezionare le coordinate', 'success')
+        isModalOpen.value = false;
+    }
 }
 
 const getAssociazioneName = (ortoId) => {
@@ -297,8 +318,8 @@ const saveOrto = async () => {
       </div>
 
       <!-- Map View -->
-      <div v-show="viewMode === 'map'" class="card bg-base-100 shadow-xl w-full max-w-5xl h-[600px] border border-base-200 overflow-hidden relative z-0">
-          <l-map ref="map" v-model:zoom="zoom" :center="center" :use-global-leaflet="false">
+      <div v-show="viewMode === 'map'" class="card bg-base-100 shadow-xl w-full max-w-5xl h-[600px] border border-base-200 overflow-hidden relative z-0" :class="{ 'ring-4 ring-success ring-opacity-50': isSelectingCoordinates && isModalOpen }">
+          <l-map ref="map" v-model:zoom="zoom" :center="center" :use-global-leaflet="false" @click="onMapClick">
             <l-tile-layer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               layer-type="base"
@@ -416,11 +437,20 @@ const saveOrto = async () => {
                         </div>
                         <div class="form-control">
                             <label class="label">Latitudine</label>
-                            <input v-model="form.lat" type="number" step="any" class="input input-bordered w-full" placeholder="46.06787" required />
+                            <input v-model="form.lat" type="number" step="any" class="input input-bordered w-full" placeholder="46.06787" required :class="{ 'input-success': isSelectingCoordinates }" />
                         </div>
                         <div class="form-control">
-                            <label class="label">Longitudine</label>
-                            <input v-model="form.lng" type="number" step="any" class="input input-bordered w-full" placeholder="11.12108" required />
+                            <label class="label flex justify-between items-center">
+                                <span>Longitudine</span>
+                                <button type="button" @click="toggleCoordinateSelection" class="btn btn-xs btn-outline gap-1" :class="isSelectingCoordinates ? 'btn-success' : 'btn-neutral'">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    {{ isSelectingCoordinates ? 'Clicca mappa' : 'Dalla mappa' }}
+                                </button>
+                            </label>
+                            <input v-model="form.lng" type="number" step="any" class="input input-bordered w-full" placeholder="11.12108" required :class="{ 'input-success': isSelectingCoordinates }" />
                         </div>
                         <!-- Association Selection -->
                         <div class="form-control md:col-span-2">
