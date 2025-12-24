@@ -299,10 +299,10 @@ const saveOrto = async () => {
                   <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-green-500"></span> Assegnato
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span> Assegnato
                         </div>
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-red-500"></span> Libero
+                            <span class="w-3 h-3 rounded-full bg-green-500"></span> Libero
                         </div>
                     </div>
                   <!-- Toggle View -->
@@ -343,7 +343,7 @@ const saveOrto = async () => {
                 :key="orto._id || orto.id" 
                 :lat-lng="[orto.coordinate.lat, orto.coordinate.lng]"
             >
-                <l-icon :icon-url="isAssigned(orto._id || orto.id) ? greenIcon.options.iconUrl : redIcon.options.iconUrl" 
+                <l-icon :icon-url="isAssigned(orto._id || orto.id) ? redIcon.options.iconUrl : greenIcon.options.iconUrl" 
                         :shadow-url="redIcon.options.shadowUrl"
                         :icon-size="redIcon.options.iconSize"
                         :icon-anchor="redIcon.options.iconAnchor"
@@ -358,8 +358,8 @@ const saveOrto = async () => {
                             📍 {{ orto.indirizzo }}
                         </p>
                          <div class="flex items-center gap-2 mb-3 text-xs">
-                            <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-success text-white' : 'badge-error text-white'">
-                                {{ isAssigned(orto._id || orto.id) ? 'Assegnato' : 'Non Assegnato' }}
+                            <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-error text-white' : 'badge-success text-white'">
+                                {{ isAssigned(orto._id || orto.id) ? 'Assegnato' : 'Libero' }}
                             </span>
                             <span class="badge badge-ghost badge-sm">Lotti: {{ orto.lotti?.length || 0 }}</span>
                         </div>
@@ -378,7 +378,7 @@ const saveOrto = async () => {
   <div class="card-body p-6">
     <!-- Status Badge at Top -->
     <div class="mb-3">
-      <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-success text-white' : 'badge-error text-white'">
+      <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-error text-white' : 'badge-success text-white'">
         {{ isAssigned(orto._id || orto.id) ? 'Assegnato' : 'Libero' }}
       </span>
     </div>
