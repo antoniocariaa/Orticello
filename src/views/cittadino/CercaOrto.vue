@@ -76,7 +76,7 @@ const getLottoData = (lottoId) => {
         const id = lottoId._id || lottoId.id
         if (id && lottiDetails.value[id]) return lottiDetails.value[id]
         
-        return lottoId // Return as is if we can't improve it
+        return lottoId 
     }
     
     // If string ID, look up
@@ -101,31 +101,44 @@ const fetchAssociazioni = async () => {
     }
 }
 
-const userRequests = ref([])
+const allAffidamenti = ref([])
 
-const fetchUserRequests = async () => {
+const fetchAllAffidamenti = async () => {
     try {
-        const user = store.user
-        if (!user || (!user.id && !user._id)) return
-        
-        const userId = user._id || user.id
-        const response = await api.get(`/richiestaLotto?id_utente=${userId}`)
-        userRequests.value = Array.isArray(response) ? response : (response.data || [])
+        const response = await api.get('/affidaLotti')
+        allAffidamenti.value = Array.isArray(response) ? response : (response.data || [])
     } catch (e) {
-        console.error('Failed to fetch user requests', e)
+        console.error('Failed to fetch affidaLotti', e)
     }
 }
 
 const hasRequested = (lottoId) => {
     const id = typeof lottoId === 'object' ? (lottoId._id || lottoId.id) : lottoId
-    return userRequests.value.some(r => {
-        const reqLottoId = typeof r.id_lotto === 'object' ? (r.id_lotto._id || r.id_lotto.id) : r.id_lotto
-        return reqLottoId === id
+    const userId = store.user?._id || store.user?.id
+    
+    if (!userId) return false
+
+    return allAffidamenti.value.some(a => {
+        const assignedLottoId = typeof a.lotto === 'object' ? (a.lotto._id || a.lotto.id) : a.lotto
+        const assignedUserId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
+        
+        // Check if it's my request (pending or accepted)
+        return assignedLottoId === id && assignedUserId === userId
+    })
+}
+
+const isLottoOccupied = (lottoId) => {
+    const id = typeof lottoId === 'object' ? (lottoId._id || lottoId.id) : lottoId
+    return allAffidamenti.value.some(a => {
+        const assignedLottoId = typeof a.lotto === 'object' ? (a.lotto._id || a.lotto.id) : a.lotto
+        // It is occupied if status is accepted
+        // Note: The model has enum ["pending", "accepted", "rejected"]
+        return assignedLottoId === id && a.stato === 'accepted'
     })
 }
 
 onMounted(async () => {
-    await Promise.all([fetchOrti(), fetchAffidamenti(), fetchAssociazioni(), fetchUserRequests()])
+    await Promise.all([fetchOrti(), fetchAffidamenti(), fetchAssociazioni(), fetchAllAffidamenti()])
 })
 
 const getAssignment = (ortoId) => {
@@ -201,15 +214,15 @@ const requestLotto = async (lotto, orto) => {
         }
 
         const payload = {
-            id_lotto: lottoId,
-            id_utente: user._id || user.id
+            lotto: lottoId,
+            utente: user._id || user.id
         }
         
         // Optimistic UI update or just feedback
-        await api.post('/richiestaLotto', payload)
+        await api.post('/affidaLotti', payload)
         
         showToast(`Richiesta inviata per il lotto in ${orto.nome}`, 'success')
-        await fetchUserRequests() // Refresh requests to update UI
+        await fetchAllAffidamenti() // Refresh requests to update UI
         isDetailsModalOpen.value = false
     } catch (e) {
         console.error('Request failed', e)
@@ -319,13 +332,20 @@ const checkAndRequest = (lotto, orto) => {
                                     <div class="font-bold">Lotto #{{ idx + 1 }}</div>
                                     <div class="badge badge-neutral badge-xs">{{ getLottoData(lotto).dimensione }} mq</div>
                                 </div>
-                                <div class="mb-2">Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</div>
+                                <div class="mb-2 flex justify-between items-center">
+                                    <span>Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</span>
+                                    <span v-if="isLottoOccupied(lotto)" class="badge badge-error badge-xs">Occupato</span>
+                                </div>
                                 <button 
+                                    v-if="!isLottoOccupied(lotto)"
                                     @click="checkAndRequest(lotto, orto)"
                                     class="btn btn-xs w-full"
                                     :class="hasRequested(lotto) ? 'btn-neutral opacity-50' : 'btn-primary'"
                                 >
                                     Richiedi
+                                </button>
+                                <button v-else class="btn btn-xs btn-disabled w-full opacity-50">
+                                    Non Disponibile
                                 </button>
                             </div>
                         </div>
@@ -421,13 +441,15 @@ const checkAndRequest = (lotto, orto) => {
                                 <span v-else class="text-gray-400">No</span>
                             </td>
                             <td>
-                                <button 
+                                <button
+                                    v-if="!isLottoOccupied(lotto)" 
                                     class="btn btn-xs"
                                     :class="hasRequested(lotto) ? 'btn-neutral opacity-50' : 'btn-primary'"
                                     @click="checkAndRequest(lotto, selectedOrto)"
                                 >
                                     Richiedi
                                 </button>
+                                <span v-else class="badge badge-error badge-xs">Occupato</span>
                             </td>
                         </tr>
                     </tbody>
