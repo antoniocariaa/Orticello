@@ -291,28 +291,40 @@ const saveOrto = async () => {
 <template>
   <div class="p-6 min-h-[calc(100vh-64px)] w-full flex flex-col items-center gap-4">
       
-      <div class="flex justify-between w-full max-w-5xl items-end">
-          <div class="flex flex-col gap-3">
+      <div class="flex flex-col md:flex-row justify-between w-full max-w-5xl items-start md:items-end gap-4">
+          <div class="flex flex-col gap-3 w-full md:w-auto">
               <h1 class="text-3xl font-bold text-primary">Orti a Trento</h1>
-              <!-- Toggle View -->
-              <div class="join">
-                <button 
-                    class="btn btn-sm join-item" 
-                    :class="viewMode === 'map' ? 'btn-active btn-neutral' : ''"
-                    @click="viewMode = 'map'"
-                >
-                    Mappa
-                </button>
-                <button 
-                    class="btn btn-sm join-item" 
-                    :class="viewMode === 'list' ? 'btn-active btn-neutral' : ''"
-                    @click="viewMode = 'list'"
-                >
-                    Lista
-                </button>
+              
+              <div class="flex flex-wrap gap-4 items-center">
+                  <!-- Legend -->
+                    <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
+                        <div class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-green-500"></span> Assegnato
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span> Libero
+                        </div>
+                    </div>
+                  <!-- Toggle View -->
+                  <div class="join">
+                    <button 
+                        class="btn btn-sm join-item" 
+                        :class="viewMode === 'map' ? 'btn-active btn-neutral' : ''"
+                        @click="viewMode = 'map'"
+                    >
+                       🗺️ Mappa
+                    </button>
+                    <button 
+                        class="btn btn-sm join-item" 
+                        :class="viewMode === 'list' ? 'btn-active btn-neutral' : ''"
+                        @click="viewMode = 'list'"
+                    >
+                      📋 Lista
+                    </button>
+                  </div>
               </div>
           </div>
-          <button @click="openAddModal" class="btn btn-primary gap-2">
+          <button @click="openAddModal" class="btn btn-primary gap-2 w-full md:w-auto">
              <span class="text-xl">+</span> Aggiungi Orto
           </button>
       </div>
