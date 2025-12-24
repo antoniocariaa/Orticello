@@ -72,6 +72,31 @@ const router = createRouter({
             component: () => import('../views/comune/MappaComune.vue'),
             meta: { requiresAuth: true }
         },
+        // Associazione Routes
+        {
+            path: '/associazione/dashboard',
+            name: 'associazione-dashboard',
+            component: () => import('../views/associazione/HomeAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/associazione/orti',
+            name: 'associazione-orti',
+            component: () => import('../views/associazione/OrtiAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/associazione/avvisi',
+            name: 'associazione-avvisi',
+            component: () => import('../views/associazione/AvvisiAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/associazione/bandi',
+            name: 'associazione-bandi',
+            component: () => import('../views/associazione/BandiAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
         {
             path: '/:pathMatch(.*)*',
             redirect: '/'
