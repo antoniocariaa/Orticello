@@ -95,6 +95,30 @@ const logout = () => {
                 </router-link>
             </li>
          </ul>
+
+         <!-- Associazione Navbar Menu -->
+         <ul v-if="store.user?.tipo === 'asso'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
+            <li>
+                <router-link to="/associazione/dashboard" active-class="active" class="font-medium">
+                    📊 Dashboard
+                </router-link>
+            </li>
+            <li>
+                <router-link to="/associazione/orti" active-class="active" class="font-medium">
+                    🌿 Orti
+                </router-link>
+            </li>
+            <li>
+                <router-link to="/associazione/avvisi" active-class="active" class="font-medium">
+                    🔔 Avvisi
+                </router-link>
+            </li>
+            <li>
+                <router-link to="/associazione/bandi" active-class="active" class="font-medium">
+                     📜 Bandi
+                </router-link>
+            </li>
+         </ul>
       </div>
 
       <!--Logout-->
@@ -147,6 +171,32 @@ const logout = () => {
              </li>
              <li>
                 <router-link to="/comune/avvisi" active-class="active">📢 Avvisi</router-link>
+             </li>
+             <li>
+                <a @click="logout" class="text-error font-semibold">🚪 Logout</a>
+             </li>
+          </ul>
+        </div>
+      </div>
+      
+        <!-- Mobile Navbar Menu (Associazione) -->
+       <div class="flex-none md:hidden" v-if="store.user?.tipo === 'asso'">
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+          </div>
+          <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+             <li>
+                <router-link to="/associazione/dashboard" active-class="active">📊 Dashboard</router-link>
+             </li>
+             <li>
+                <router-link to="/associazione/orti" active-class="active">🌿 Orti</router-link>
+             </li>
+             <li>
+                <router-link to="/associazione/avvisi" active-class="active">🔔 Avvisi</router-link>
+             </li>
+             <li>
+                <router-link to="/associazione/bandi" active-class="active">📜 Bandi</router-link>
              </li>
              <li>
                 <a @click="logout" class="text-error font-semibold">🚪 Logout</a>
