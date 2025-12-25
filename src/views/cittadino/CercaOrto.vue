@@ -231,10 +231,27 @@ const requestLotto = async (lotto, orto) => {
 }
 
 const checkAndRequest = (lotto, orto) => {
+    // Check if I already requested THIS lotto
     if (hasRequested(lotto)) {
          showToast('Richiesta già effettuata per questo Lotto', 'warning')
          return
     }
+
+    // Check if I already have ANY accepted lotto (One Orto Rule)
+    const userId = store.user?._id || store.user?.id
+    if (!userId) return
+
+    const hasActiveAssignment = allAffidamenti.value.some(a => {
+        const assignedUserId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
+        // Check if it's me AND it's accepted
+        return String(assignedUserId) === String(userId) && a.stato === 'accepted'
+    })
+
+    if (hasActiveAssignment) {
+        showToast('Impossibile effettuare la richiesta. Possiedi già un Lotto', 'warning')
+        return
+    }
+
     requestLotto(lotto, orto)
 }
 
