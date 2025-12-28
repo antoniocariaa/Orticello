@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import { store } from '../store'
 
 const router = useRouter()
 
@@ -15,14 +16,58 @@ const form = ref({
   codicefiscale: ''
 })
 
+const fromGoogle = ref(false)
+const googleToken = ref(null)
 const loading = ref(false)
 const error = ref(null)
+
+// Precompila i dati da Google se presenti
+onMounted(() => {
+  const state = history.state
+  if (state && state.fromGoogle) {
+    fromGoogle.value = true
+    googleToken.value = state.googleToken
+    form.value.nome = state.nome || ''
+    form.value.cognome = state.cognome || ''
+    form.value.email = state.email || ''
+    // Password predefinita per utenti Google
+    form.value.password = 'GoogleUser_' + Math.random().toString(36).substring(7)
+  }
+})
 
 const register = async () => {
   loading.value = true
   error.value = null
   try {
-    await api.post('/utenti', form.value)
+    // Se arriva da Google, includi il token nella registrazione
+    const payload = { ...form.value }
+    if (fromGoogle.value && googleToken.value) {
+      payload.googleToken = googleToken.value
+    }
+    
+    await api.post('/utenti', payload)
+
+    // Se è registrazione Google, fai login automaticamente
+    if (fromGoogle.value && googleToken.value) {
+      try {
+        const loginData = await api.post('/authentication', {
+          googleToken: googleToken.value
+        })
+        
+        localStorage.setItem('token', loginData.token)
+        const user = await api.get(`/utenti/${loginData.id}`)
+        localStorage.setItem('user', JSON.stringify(user))
+        
+        // Aggiorna lo store con i dati utente
+        store.setUser(user)
+        
+        // Redirect to home
+        router.push('/')
+        return
+      } catch (loginErr) {
+        console.error('Login automatico fallito:', loginErr)
+      }
+    }
 
     // Redirect to login after successful registration
     router.push('/login?registered=true')
@@ -38,6 +83,11 @@ const register = async () => {
   <div class="card bg-base-100 shadow-xl w-full max-w-lg mx-auto">
     <div class="card-body p-6 sm:p-8">
       <h2 class="card-title text-2xl font-bold text-center justify-center mb-6 text-primary">Crea un Account</h2>
+      
+      <div v-if="fromGoogle" role="alert" class="alert alert-info mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Completa la registrazione con i dati da Google. Inserisci le informazioni mancanti.</span>
+      </div>
       
       <form @submit.prevent="register" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -60,10 +110,10 @@ const register = async () => {
           <label class="label">
             <span class="label-text">Email</span>
           </label>
-          <input type="email" v-model="form.email" placeholder="mario.rossi@esempio.com" class="input input-bordered w-full" required />
+          <input type="email" v-model="form.email" placeholder="mario.rossi@esempio.com" class="input input-bordered w-full" :readonly="fromGoogle" :class="{'input-disabled': fromGoogle}" required />
         </div>
 
-        <div class="form-control">
+        <div v-if="!fromGoogle" class="form-control">
           <label class="label">
             <span class="label-text">Password</span>
           </label>
