@@ -67,6 +67,12 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/comune/bandi',
+            name: 'comune-bandi',
+            component: () => import('../views/comune/BandiComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/comune/mappa',
             name: 'comune-mappa',
             component: () => import('../views/comune/MappaComune.vue'),
