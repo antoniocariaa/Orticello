@@ -22,30 +22,95 @@ export default {
     
     // Filtri
     const searchText = ref('')
-    const filterEmittente = ref('all') // all, comune, associazione
+    const filterEmittente = ref('all') // all, comu, asso
     const filterCategoria = ref('all')
     const filterData = ref('all') // all, today, week, month
     const filterLetto = ref('all') // all, letto, non-letto
     
-    // Stato lettura locale (temporaneo finché non c'è l'API)
-    const avvisiLetti = ref(new Set())
+    // Pagination
+    const currentPage = ref(1)
+    const totalPages = ref(1)
+    const totalItems = ref(0)
+    const itemsPerPage = ref(20)
     
-    // Categorie disponibili
-    const categorie = computed(() => {
-      const cats = new Set()
-      avvisi.value.forEach(avviso => {
-        if (avviso.categoria) cats.add(avviso.categoria)
-      })
-      return Array.from(cats).sort()
-    })
+    // Stato lettura
+    const avvisiLetti = ref({}) // { avvisoId: { letto: boolean, dataLettura: Date } }
     
-    // Carica avvisi dall'API
+    // Categorie disponibili (loaded from all avvisi)
+    const categorie = ref([])
+    
+    // Build query parameters based on filters
+    const buildQueryParams = () => {
+      const params = new URLSearchParams()
+      
+      // Entity type filter
+      if (filterEmittente.value !== 'all') {
+        params.append('tipo', filterEmittente.value)
+      }
+      
+      // Category filter
+      if (filterCategoria.value !== 'all') {
+        params.append('categoria', filterCategoria.value)
+      }
+      
+      // Date range filter
+      if (filterData.value !== 'all') {
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        
+        switch (filterData.value) {
+          case 'today':
+            params.append('dataInizio', today.toISOString())
+            params.append('dataFine', new Date(today.getTime() + 86400000).toISOString())
+            break
+          case 'week':
+            const weekAgo = new Date(today)
+            weekAgo.setDate(weekAgo.getDate() - 7)
+            params.append('dataInizio', weekAgo.toISOString())
+            break
+          case 'month':
+            const monthAgo = new Date(today)
+            monthAgo.setMonth(monthAgo.getMonth() - 1)
+            params.append('dataInizio', monthAgo.toISOString())
+            break
+        }
+      }
+      
+      // Read status filter (only if user is authenticated)
+      if (filterLetto.value !== 'all' && store.token) {
+        params.append('letto', filterLetto.value === 'letto' ? 'true' : 'false')
+      }
+      
+      // Pagination
+      params.append('page', currentPage.value)
+      params.append('limit', itemsPerPage.value)
+      
+      return params.toString()
+    }
+    
+    // Load all categories for filter dropdown
+    const loadCategorie = async () => {
+      try {
+        const data = await api.get('/avvisi')
+        const cats = new Set()
+        data.forEach(avviso => {
+          if (avviso.categoria) cats.add(avviso.categoria)
+        })
+        categorie.value = Array.from(cats).sort()
+      } catch (err) {
+        console.error('Errore caricamento categorie:', err)
+      }
+    }
+    
+    // Carica avvisi dall'API usando endpoint filtered
     const loadAvvisi = async () => {
       loading.value = true
       error.value = null
       try {
-        const data = await api.get('/avvisi')
-        avvisi.value = data.map(avviso => ({
+        const queryParams = buildQueryParams()
+        const response = await api.get(`/avvisi/filtered?${queryParams}`)
+        
+        avvisi.value = response.data.map(avviso => ({
           ...avviso,
           dataFormatted: new Date(avviso.data).toLocaleDateString('it-IT', {
             day: '2-digit',
@@ -53,6 +118,19 @@ export default {
             year: 'numeric'
           })
         }))
+        
+        // Update pagination info
+        if (response.pagination) {
+          currentPage.value = response.pagination.currentPage
+          totalPages.value = response.pagination.totalPages
+          totalItems.value = response.pagination.totalItems
+          itemsPerPage.value = response.pagination.itemsPerPage
+        }
+        
+        // Load read status if user is authenticated
+        if (store.token && avvisi.value.length > 0) {
+          await loadReadStatus()
+        }
       } catch (err) {
         error.value = err.message || 'Errore nel caricamento degli avvisi'
         console.error('Errore caricamento avvisi:', err)
@@ -61,11 +139,11 @@ export default {
       }
     }
     
-    // Filtra avvisi in base ai criteri
+    // Filtra avvisi in base ai criteri (client-side text search only)
     const avvisiFiltrati = computed(() => {
       let filtered = avvisi.value
       
-      // Filtro per testo di ricerca
+      // Filtro per testo di ricerca (client-side)
       if (searchText.value) {
         const search = searchText.value.toLowerCase()
         filtered = filtered.filter(avviso => 
@@ -74,72 +152,55 @@ export default {
         )
       }
       
-      // Filtro per emittente
-      if (filterEmittente.value !== 'all') {
-        filtered = filtered.filter(avviso => avviso.tipo === filterEmittente.value)
-      }
-      
-      // Filtro per categoria
-      if (filterCategoria.value !== 'all') {
-        filtered = filtered.filter(avviso => avviso.categoria === filterCategoria.value)
-      }
-      
-      // Filtro per data
-      if (filterData.value !== 'all') {
-        const now = new Date()
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        
-        filtered = filtered.filter(avviso => {
-          const avvisoDate = new Date(avviso.data)
-          const avvisoDay = new Date(avvisoDate.getFullYear(), avvisoDate.getMonth(), avvisoDate.getDate())
-          
-          switch (filterData.value) {
-            case 'today':
-              return avvisoDay.getTime() === today.getTime()
-            case 'week':
-              const weekAgo = new Date(today)
-              weekAgo.setDate(weekAgo.getDate() - 7)
-              return avvisoDay >= weekAgo
-            case 'month':
-              const monthAgo = new Date(today)
-              monthAgo.setMonth(monthAgo.getMonth() - 1)
-              return avvisoDay >= monthAgo
-            default:
-              return true
-          }
-        })
-      }
-      
-      // Filtro per stato lettura
-      if (filterLetto.value !== 'all') {
-        filtered = filtered.filter(avviso => {
-          const isLetto = avvisiLetti.value.has(avviso._id)
-          return filterLetto.value === 'letto' ? isLetto : !isLetto
-        })
-      }
-      
       // Ordina per data (più recenti prima)
       return filtered.sort((a, b) => new Date(b.data) - new Date(a.data))
     })
     
-    // Marca come letto (temporaneo)
-    const segnaComeLetto = (avvisoId) => {
-      avvisiLetti.value.add(avvisoId)
-      // TODO: quando l'API sarà disponibile, chiamare:
-      // await api.post(`/avvisi/${avvisoId}/letto`)
-      alert('Funzionalità "Segna come letto" non ancora implementata nel backend.\nLo stato è salvato solo localmente.')
+    // Load read status for current avvisi
+    const loadReadStatus = async () => {
+      if (!store.token || avvisi.value.length === 0) return
+      
+      try {
+        const avvisiIds = avvisi.value.map(a => a._id)
+        const response = await api.post('/avvisi/read-status', { avvisiIds })
+        avvisiLetti.value = response.data
+      } catch (err) {
+        console.error('Errore caricamento stato lettura:', err)
+      }
     }
     
-    // Marca come non letto (temporaneo)
+    // Marca come letto
+    const segnaComeLetto = async (avvisoId) => {
+      if (!store.token) {
+        alert('Devi effettuare il login per marcare gli avvisi come letti')
+        return
+      }
+      
+      try {
+        await api.put(`/avvisi/${avvisoId}/read`)
+        // Update local state
+        avvisiLetti.value[avvisoId] = {
+          letto: true,
+          dataLettura: new Date().toISOString()
+        }
+      } catch (err) {
+        console.error('Errore nel marcare come letto:', err)
+        alert('Errore nel marcare l\'avviso come letto')
+      }
+    }
+    
+    // Marca come non letto (note: API doesn't support unread, so we just update locally)
     const segnaComeDaLeggere = (avvisoId) => {
-      avvisiLetti.value.delete(avvisoId)
-      // TODO: quando l'API sarà disponibile, chiamare:
-      // await api.delete(`/avvisi/${avvisoId}/letto`)
+      // Update local state only (backend doesn't have unread endpoint)
+      avvisiLetti.value[avvisoId] = {
+        letto: false,
+        dataLettura: null
+      }
     }
     
     // Verifica se un avviso è stato letto
     const isLetto = (avvisoId) => {
-      return avvisiLetti.value.has(avvisoId)
+      return avvisiLetti.value[avvisoId]?.letto || false
     }
     
     // Ottieni label dell'emittente
@@ -159,9 +220,40 @@ export default {
       filterCategoria.value = 'all'
       filterData.value = 'all'
       filterLetto.value = 'all'
+      currentPage.value = 1
+      loadAvvisi()
+    }
+    
+    // Watch filters to reload data when changed
+    const reloadOnFilterChange = () => {
+      currentPage.value = 1
+      loadAvvisi()
+    }
+    
+    // Navigation functions
+    const nextPage = () => {
+      if (currentPage.value < totalPages.value) {
+        currentPage.value++
+        loadAvvisi()
+      }
+    }
+    
+    const prevPage = () => {
+      if (currentPage.value > 1) {
+        currentPage.value--
+        loadAvvisi()
+      }
+    }
+    
+    const goToPage = (page) => {
+      if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+        loadAvvisi()
+      }
     }
     
     onMounted(() => {
+      loadCategorie()
       loadAvvisi()
     })
     
@@ -176,12 +268,20 @@ export default {
       filterData,
       filterLetto,
       categorie,
+      currentPage,
+      totalPages,
+      totalItems,
+      itemsPerPage,
       loadAvvisi,
       segnaComeLetto,
       segnaComeDaLeggere,
       isLetto,
       getEmittenteLabel,
       resetFiltri,
+      reloadOnFilterChange,
+      nextPage,
+      prevPage,
+      goToPage,
       store
     }
   }
@@ -228,7 +328,7 @@ export default {
             <label class="label">
               <span class="label-text">👥 Emittente</span>
             </label>
-            <select v-model="filterEmittente" class="select select-bordered select-sm">
+            <select v-model="filterEmittente" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutti</option>
               <option value="comu">Comune</option>
               <option value="asso">Associazione</option>
@@ -240,7 +340,7 @@ export default {
             <label class="label">
               <span class="label-text">📂 Categoria</span>
             </label>
-            <select v-model="filterCategoria" class="select select-bordered select-sm">
+            <select v-model="filterCategoria" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutte</option>
               <option v-for="cat in categorie" :key="cat" :value="cat">
                 {{ cat }}
@@ -253,7 +353,7 @@ export default {
             <label class="label">
               <span class="label-text">📅 Data</span>
             </label>
-            <select v-model="filterData" class="select select-bordered select-sm">
+            <select v-model="filterData" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutte</option>
               <option value="today">Oggi</option>
               <option value="week">Ultima settimana</option>
@@ -266,7 +366,7 @@ export default {
             <label class="label">
               <span class="label-text">✅ Stato</span>
             </label>
-            <select v-model="filterLetto" class="select select-bordered select-sm">
+            <select v-model="filterLetto" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutti</option>
               <option value="non-letto">Non letti</option>
               <option value="letto">Letti</option>
@@ -372,6 +472,84 @@ export default {
               {{ avviso.messaggio }}
             </p>
           </div>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex justify-center mt-6">
+        <div class="join">
+          <button 
+            class="join-item btn btn-sm" 
+            :disabled="currentPage === 1"
+            @click="prevPage"
+          >
+            «
+          </button>
+          
+          <!-- First page -->
+          <button 
+            v-if="currentPage > 2"
+            class="join-item btn btn-sm" 
+            @click="goToPage(1)"
+          >
+            1
+          </button>
+          
+          <!-- Ellipsis before -->
+          <button 
+            v-if="currentPage > 3"
+            class="join-item btn btn-sm btn-disabled"
+          >
+            ...
+          </button>
+          
+          <!-- Previous page -->
+          <button 
+            v-if="currentPage > 1"
+            class="join-item btn btn-sm" 
+            @click="goToPage(currentPage - 1)"
+          >
+            {{ currentPage - 1 }}
+          </button>
+          
+          <!-- Current page -->
+          <button class="join-item btn btn-sm btn-active">
+            {{ currentPage }}
+          </button>
+          
+          <!-- Next page -->
+          <button 
+            v-if="currentPage < totalPages"
+            class="join-item btn btn-sm" 
+            @click="goToPage(currentPage + 1)"
+          >
+            {{ currentPage + 1 }}
+          </button>
+          
+          <!-- Ellipsis after -->
+          <button 
+            v-if="currentPage < totalPages - 2"
+            class="join-item btn btn-sm btn-disabled"
+          >
+            ...
+          </button>
+          
+          <!-- Last page -->
+          <button 
+            v-if="currentPage < totalPages - 1"
+            class="join-item btn btn-sm" 
+            @click="goToPage(totalPages)"
+          >
+            {{ totalPages }}
+          </button>
+          
+          <button 
+            class="join-item btn btn-sm" 
+            :disabled="currentPage === totalPages"
+            @click="nextPage"
+          >
+            »
+          </button>
         </div>
       </div>
     </div>
