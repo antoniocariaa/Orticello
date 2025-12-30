@@ -107,6 +107,20 @@ const executeDelete = async () => {
 
 const activeTab = ref('attivi');
 
+// View Modal Logic
+const isViewModalOpen = ref(false);
+const bandoToView = ref(null);
+
+const openViewModal = (bando) => {
+  bandoToView.value = bando;
+  isViewModalOpen.value = true;
+};
+
+const closeViewModal = () => {
+  isViewModalOpen.value = false;
+  bandoToView.value = null;
+};
+
 onMounted(() => {
   fetchBandi();
 });
@@ -142,7 +156,12 @@ onMounted(() => {
     <!-- Lista Bandi Attivi -->
     <div v-if="activeTab === 'attivi'">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        <div v-for="bando in activeBandi" :key="bando._id" class="card bg-base-100 shadow-xl border border-base-200">
+        <div 
+          v-for="bando in activeBandi" 
+          :key="bando._id" 
+          class="card bg-base-100 shadow-xl border border-base-200 cursor-pointer hover:shadow-2xl transition-shadow"
+          @click="openViewModal(bando)"
+        >
           <div class="card-body">
             <h2 class="card-title text-accent">{{ bando.titolo }}</h2>
             <p class="text-sm text-gray-500">
@@ -151,8 +170,8 @@ onMounted(() => {
             </p>
             <p class="truncate">{{ bando.messaggio }}</p>
             <div class="card-actions justify-end mt-4">
-              <button @click="openModal(bando)" class="btn btn-sm btn-ghost">Modifica</button>
-              <button @click="confirmDelete(bando)" class="btn btn-sm btn-error text-white">Elimina</button>
+              <button @click.stop="openModal(bando)" class="btn btn-sm btn-ghost">Modifica</button>
+              <button @click.stop="confirmDelete(bando)" class="btn btn-sm btn-error text-white">Elimina</button>
             </div>
           </div>
         </div>
@@ -167,7 +186,12 @@ onMounted(() => {
     <!-- Lista Bandi Scaduti -->
     <div v-if="activeTab === 'scaduti'">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="bando in expiredBandi" :key="bando._id" class="card bg-base-100 shadow-xl border border-base-200 opacity-60">
+        <div 
+          v-for="bando in expiredBandi" 
+          :key="bando._id" 
+          class="card bg-base-100 shadow-xl border border-base-200 opacity-60 cursor-pointer hover:opacity-80 transition-opacity"
+           @click="openViewModal(bando)"
+        >
           <div class="card-body">
             <h2 class="card-title text-gray-500">{{ bando.titolo }}</h2>
             <p class="text-sm text-gray-400">
@@ -184,7 +208,6 @@ onMounted(() => {
         <p class="text-gray-500 text-lg">Nessun bando scaduto presente.</p>
       </div>
     </div>
-
 
 
     <!-- Modal creazone/modifica -->
@@ -231,6 +254,25 @@ onMounted(() => {
         <div class="modal-action">
           <button @click="closeModal" class="btn">Annulla</button>
           <button @click="saveBando" class="btn btn-primary">Salva</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Dettagli -->
+    <div v-if="isViewModalOpen" class="modal modal-open" @click.self="closeViewModal">
+      <div class="modal-box relative">
+        <button @click="closeViewModal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
+        <h3 class="font-bold text-xl text-primary mb-2">{{ bandoToView?.titolo }}</h3>
+        <p class="text-sm text-gray-500 mb-4">
+          Dal {{ new Date(bandoToView?.data_inizio).toLocaleDateString() }} 
+          al {{ new Date(bandoToView?.data_fine).toLocaleDateString() }}
+        </p>
+        <div class="py-4 whitespace-pre-wrap break-words">{{ bandoToView?.messaggio }}</div>
+        
+        <div v-if="bandoToView?.link" class="mt-4">
+          <a :href="bandoToView.link" target="_blank" class="btn btn-outline btn-primary btn-sm">
+            Visita Link Esterno
+          </a>
         </div>
       </div>
     </div>
