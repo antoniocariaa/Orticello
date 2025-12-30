@@ -2,7 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
 
+
 const bandi = ref([])
+const selectedBando = ref(null)
+const isModalOpen = ref(false)
 
 const fetchBandi = async () => {
     try {
@@ -27,8 +30,12 @@ const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('it-IT', {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
     })
+}
+
+const openModal = (bando) => {
+    selectedBando.value = bando
+    isModalOpen.value = true
 }
 
 
@@ -53,7 +60,12 @@ const formatDate = (dateString) => {
                 <p>Nessun bando attivo al momento.</p>
             </div>
 
-            <div v-for="bando in activeBandi" :key="bando._id || bando.id" class="card card-compact bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all duration-300">
+            <div 
+                v-for="bando in activeBandi" 
+                :key="bando._id || bando.id" 
+                class="card card-compact bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-[1.02]"
+                @click="openModal(bando)"
+            >
                 <div class="card-body">
                     <div class="flex justify-between items-start gap-2">
                         <h2 class="card-title text-lg mb-1 leading-tight">
@@ -73,13 +85,45 @@ const formatDate = (dateString) => {
                     <p class="text-sm text-gray-600 line-clamp-3 mb-3">{{ bando.messaggio }}</p>
 
                     <div class="card-actions justify-end mt-auto">
-                        <a v-if="bando.link" :href="bando.link" target="_blank" class="btn btn-primary btn-xs btn-outline">
-                            📄 Scarica
-                        </a>
+                        <span class="text-xs text-primary font-medium hover:underline">Leggi tutto →</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isModalOpen }">
+        <div class="modal-box w-11/12 max-w-3xl">
+            <template v-if="selectedBando">
+                <h3 class="font-bold text-2xl text-primary mb-2">{{ selectedBando.titolo }}</h3>
+                
+                <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6 border-b pb-4">
+                    <span class="flex items-center gap-1 bg-base-200 px-2 py-1 rounded">
+                        📅 Inizio: <b>{{ formatDate(selectedBando.data_inizio) }}</b>
+                    </span>
+                    <span class="flex items-center gap-1 bg-error/10 text-error px-2 py-1 rounded">
+                        ⏰ Scadenza: <b>{{ formatDate(selectedBando.data_fine) }}</b>
+                    </span>
+                </div>
+
+                <div class="prose max-w-none text-gray-700 whitespace-pre-line break-words mb-6 max-h-[60vh] overflow-y-auto pr-2">
+                    {{ selectedBando.messaggio }}
+                </div>
+
+                <div class="modal-action flex justify-between items-center">
+                    <a v-if="selectedBando.link" :href="selectedBando.link" target="_blank" class="btn btn-primary btn-sm">
+                        📄 Scarica Allegato
+                    </a>
+                    <form method="dialog">
+                        <button class="btn btn-sm" @click="isModalOpen = false">Chiudi</button>
+                    </form>
+                </div>
+            </template>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="isModalOpen = false">close</button>
+        </form>
+    </dialog>
   </div>
 </template>
