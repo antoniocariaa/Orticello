@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '../../services/api';
 
 const bandi = ref([]);
@@ -21,6 +21,24 @@ const fetchBandi = async () => {
     console.error('Error fetching bandi:', error);
   }
 };
+
+const activeBandi = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return bandi.value.filter(bando => {
+    const endDate = new Date(bando.data_fine);
+    return endDate >= today;
+  });
+});
+
+const expiredBandi = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return bandi.value.filter(bando => {
+    const endDate = new Date(bando.data_fine);
+    return endDate < today;
+  });
+});
 
 const openModal = (bando = null) => {
   if (bando) {
@@ -87,6 +105,8 @@ const executeDelete = async () => {
   }
 };
 
+const activeTab = ref('attivi');
+
 onMounted(() => {
   fetchBandi();
 });
@@ -101,28 +121,71 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Lista Bandi -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="bando in bandi" :key="bando._id" class="card bg-base-100 shadow-xl border border-base-200">
-        <div class="card-body">
-          <h2 class="card-title text-accent">{{ bando.titolo }}</h2>
-          <p class="text-sm text-gray-500">
-            {{ new Date(bando.data_inizio).toLocaleDateString() }} - 
-            {{ new Date(bando.data_fine).toLocaleDateString() }}
-          </p>
-          <p class="truncate">{{ bando.messaggio }}</p>
-          <div class="card-actions justify-end mt-4">
-            <button @click="openModal(bando)" class="btn btn-sm btn-ghost">Modifica</button>
-            <button @click="confirmDelete(bando)" class="btn btn-sm btn-error text-white">Elimina</button>
+    <!-- Tabs -->
+    <div class="tabs tabs-boxed mb-6 bg-base-100 w-fit tabs-sm">
+      <a 
+        class="tab" 
+        :class="{ 'tab-active': activeTab === 'attivi' }"
+        @click="activeTab = 'attivi'"
+      >
+        Attivi
+      </a>
+      <a 
+        class="tab" 
+        :class="{ 'tab-active': activeTab === 'scaduti' }"
+        @click="activeTab = 'scaduti'"
+      >
+        Scaduti
+      </a>
+    </div>
+
+    <!-- Lista Bandi Attivi -->
+    <div v-if="activeTab === 'attivi'">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div v-for="bando in activeBandi" :key="bando._id" class="card bg-base-100 shadow-xl border border-base-200">
+          <div class="card-body">
+            <h2 class="card-title text-accent">{{ bando.titolo }}</h2>
+            <p class="text-sm text-gray-500">
+              {{ new Date(bando.data_inizio).toLocaleDateString() }} - 
+              {{ new Date(bando.data_fine).toLocaleDateString() }}
+            </p>
+            <p class="truncate">{{ bando.messaggio }}</p>
+            <div class="card-actions justify-end mt-4">
+              <button @click="openModal(bando)" class="btn btn-sm btn-ghost">Modifica</button>
+              <button @click="confirmDelete(bando)" class="btn btn-sm btn-error text-white">Elimina</button>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Empty State for Active Bandi -->
+      <div v-if="activeBandi.length === 0" class="text-center py-10">
+        <p class="text-gray-500 text-lg">Nessun bando attivo presente.</p>
+      </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-if="bandi.length === 0" class="text-center py-10">
-      <p class="text-gray-500 text-lg">Nessun bando presente.</p>
+    <!-- Lista Bandi Scaduti -->
+    <div v-if="activeTab === 'scaduti'">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="bando in expiredBandi" :key="bando._id" class="card bg-base-100 shadow-xl border border-base-200 opacity-60">
+          <div class="card-body">
+            <h2 class="card-title text-gray-500">{{ bando.titolo }}</h2>
+            <p class="text-sm text-gray-400">
+              {{ new Date(bando.data_inizio).toLocaleDateString() }} - 
+              {{ new Date(bando.data_fine).toLocaleDateString() }}
+            </p>
+            <p class="truncate text-gray-400">{{ bando.messaggio }}</p>
+          </div>
+        </div>
+      </div>
+      
+       <!-- Empty State for Expired Bandi -->
+      <div v-if="expiredBandi.length === 0" class="text-center py-10">
+        <p class="text-gray-500 text-lg">Nessun bando scaduto presente.</p>
+      </div>
     </div>
+
+
 
     <!-- Modal creazone/modifica -->
     <div v-if="isModalOpen" class="modal modal-open">
