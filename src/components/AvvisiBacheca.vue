@@ -13,9 +13,18 @@ export default {
     subtitle: {
       type: String,
       default: 'Rimani aggiornato con le ultime comunicazioni dal Comune e dalle Associazioni'
+    },
+    canEdit: {
+      type: Boolean,
+      default: false
+    },
+    showAddButton: {
+      type: Boolean,
+      default: false
     }
   },
-  setup() {
+  emits: ['edit', 'delete', 'add'],
+  setup(props, { emit, expose }) {
     const avvisi = ref([])
     const loading = ref(false)
     const error = ref(null)
@@ -38,6 +47,13 @@ export default {
     
     // Categorie disponibili (loaded from all avvisi)
     const categorie = ref([])
+    
+    // Toast
+    const toast = ref({ show: false, message: '', type: 'success' })
+    const showToast = (message, type = 'success') => {
+      toast.value = { show: true, message, type }
+      setTimeout(() => toast.value.show = false, 3000)
+    }
     
     // Build query parameters based on filters
     const buildQueryParams = () => {
@@ -172,7 +188,7 @@ export default {
     // Marca come letto
     const segnaComeLetto = async (avvisoId) => {
       if (!store.token) {
-        alert('Devi effettuare il login per marcare gli avvisi come letti')
+        showToast('Devi effettuare il login per marcare gli avvisi come letti', 'error')
         return
       }
       
@@ -183,9 +199,10 @@ export default {
           letto: true,
           dataLettura: new Date().toISOString()
         }
+        showToast('Avviso segnato come letto', 'success')
       } catch (err) {
         console.error('Errore nel marcare come letto:', err)
-        alert('Errore nel marcare l\'avviso come letto')
+        showToast('Errore nel marcare l\'avviso come letto', 'error')
       }
     }
     
@@ -252,9 +269,27 @@ export default {
       }
     }
     
+    // Gestione edit/delete/add
+    const handleEdit = (avviso) => {
+      emit('edit', avviso)
+    }
+    
+    const handleDelete = (avviso) => {
+      emit('delete', avviso)
+    }
+    
+    const handleAdd = () => {
+      emit('add')
+    }
+    
     onMounted(() => {
       loadCategorie()
       loadAvvisi()
+    })
+    
+    // Esponi loadAvvisi per permettere il refresh dall'esterno
+    expose({
+      loadAvvisi
     })
     
     return {
@@ -282,6 +317,10 @@ export default {
       nextPage,
       prevPage,
       goToPage,
+      handleEdit,
+      handleDelete,
+      handleAdd,
+      toast,
       store
     }
   }
@@ -376,6 +415,19 @@ export default {
       </div>
     </div>
 
+    <!-- Pulsante Aggiungi Avviso -->
+    <div v-if="showAddButton" class="flex justify-end mb-4">
+      <button 
+        @click="handleAdd" 
+        class="btn btn-warning"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        Nuovo Avviso
+      </button>
+    </div>
+
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
       <span class="loading loading-spinner loading-lg text-warning"></span>
@@ -420,24 +472,8 @@ export default {
           <div class="card-body">
             <!-- Header della card -->
             <div class="flex items-start justify-between gap-4 mb-3">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="badge badge-sm" :class="avviso.tipo === 'comu' ? 'badge-primary' : 'badge-secondary'">
-                    {{ getEmittenteLabel(avviso) }}
-                  </span>
-                  <span v-if="avviso.categoria" class="badge badge-sm badge-outline">
-                    {{ avviso.categoria }}
-                  </span>
-                  <span v-if="!isLetto(avviso._id)" class="badge badge-sm badge-warning">
-                    Nuovo
-                  </span>
-                </div>
-                <h2 class="card-title text-xl">
-                  {{ avviso.titolo }}
-                </h2>
-              </div>
-              
-              <!-- Pulsante segna come letto/non letto -->
+            <div class="flex-1">
+              <!-- menu azioni -->
               <div class="dropdown dropdown-end">
                 <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-5 h-5 stroke-current">
@@ -445,6 +481,7 @@ export default {
                   </svg>
                 </label>
                 <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52">
+                  <!-- Azioni di lettura -->
                   <li v-if="!isLetto(avviso._id)">
                     <a @click="segnaComeLetto(avviso._id)">
                       ✅ Segna come letto
@@ -455,8 +492,24 @@ export default {
                       ⭕ Segna come da leggere
                     </a>
                   </li>
+                  
+                  <!-- Azioni di gestione (solo se canEdit è true) -->
+                  <template v-if="canEdit">
+                    <li><hr class="my-1" /></li>
+                    <li>
+                      <a @click="handleEdit(avviso)" class="text-info">
+                        ✏️ Modifica
+                      </a>
+                    </li>
+                    <li>
+                      <a @click="handleDelete(avviso)" class="text-error">
+                        🗑️ Elimina
+                      </a>
+                    </li>
+                  </template>
                 </ul>
               </div>
+            </div>
             </div>
 
             <!-- Data -->
@@ -551,6 +604,13 @@ export default {
             »
           </button>
         </div>
+      </div>
+    </div>
+    
+    <!-- Toast -->
+    <div v-if="toast.show" class="toast toast-end z-[9999]">
+      <div class="alert" :class="toast.type === 'error' ? 'alert-error' : 'alert-success'">
+        <span class="text-white">{{ toast.message }}</span>
       </div>
     </div>
   </div>
