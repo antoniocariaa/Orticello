@@ -1,113 +1,118 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../../services/api'
 import { store } from '../../store'
 
+const router = useRouter()
+
+// --- State ---
 const orti = ref([])
-const affidamenti = ref([]) // Tabella affidaOrti (Orto -> Associazione)
-const users = ref([]) // Per recuperare i nomi delle associazioni
-const bandi = ref([]) 
+const affidamenti = ref([]) 
+const users = ref([]) 
+const loading = ref(false)
+const error = ref(null)
+
+// --- UI State ---
+const searchQuery = ref('')
+const filterStatus = ref('all') // 'all', 'free', 'assigned'
+const currentPage = ref(1)
+const itemsPerPage = 10
 
 // --- Fetching Data ---
-
-const fetchOrti = async () => {
+const fetchData = async () => {
+    loading.value = true
+    error.value = null
     try {
-        const response = await api.get('/orti')
-        orti.value = Array.isArray(response) ? response : (response.data || [])
+        const [resOrti, resAffidi, resUsers] = await Promise.all([
+            api.get('/orti'),
+            api.get('/affidaOrti'),
+            api.get('/utenti')
+        ])
+        
+        orti.value = Array.isArray(resOrti) ? resOrti : (resOrti.data || [])
+        affidamenti.value = Array.isArray(resAffidi) ? resAffidi : (resAffidi.data || [])
+        users.value = Array.isArray(resUsers) ? resUsers : (resUsers.data || [])
     } catch (e) {
-        console.error('Failed to fetch orti', e)
+        console.error('Errore caricamento dati dashboard', e)
+        error.value = 'Impossibile caricare i dati. Riprova più tardi.'
+    } finally {
+        loading.value = false
     }
 }
 
-const fetchAffidamenti = async () => {
-    try {
-        const response = await api.get('/affidaOrti')
-        affidamenti.value = Array.isArray(response) ? response : (response.data || [])
-    } catch (e) {
-        console.error('Failed to fetch affidaOrti', e)
-    }
-}
+onMounted(fetchData)
 
-const fetchUsers = async () => {
-    try {
-        const response = await api.get('/utenti')
-        users.value = Array.isArray(response) ? response : (response.data || [])
-    } catch (e) {
-        console.error('Failed to fetch users', e)
-    }
-}
+// --- Helpers Logici ---
 
-const fetchBandi = async () => {
-    try {
-        const response = await api.get('/bandi')
-        bandi.value = Array.isArray(response) ? response : (response.data || [])
-    } catch (e) {
-        console.error('Failed to fetch bandi', e)
-    }
-}
-
-onMounted(async () => {
-    await Promise.all([fetchOrti(), fetchAffidamenti(), fetchUsers(), fetchBandi()])
-})
-
-// --- Computed Properties ---
-
-// 1. Totale Orti nel comune
-const totalOrti = computed(() => orti.value.length)
-
-// 2. Totale Associazioni (Utenti con ruolo 'asso')
-const totalAssociazioni = computed(() => {
-    return users.value.filter(u => u.tipo === 'asso').length
-})
-
-// 3. Orti non assegnati a nessuna associazione (Critico per il comune)
-const ortiNonAssegnati = computed(() => {
-    // Prendiamo gli ID degli orti che hanno un affidamento attivo
-    const now = new Date()
-    const assignedIds = new Set()
-    
-    affidamenti.value.forEach(a => {
-        // Controlliamo se l'affidamento è valido (data fine futura)
-        const endDate = new Date(a.data_fine)
-        if (endDate >= now) {
-            const oId = typeof a.orto === 'object' ? (a.orto._id || a.orto.id) : a.orto
-            assignedIds.add(String(oId))
-        }
-    })
-
-    return orti.value.filter(o => !assignedIds.has(String(o._id || o.id))).length
-})
-
-// --- Helpers ---
-
-// Trova l'affidamento attivo per un orto
 const getCurrentAssignment = (ortoId) => {
+    if (!ortoId) return null
     const oIdStr = String(ortoId)
     const now = new Date()
-    
-    // Cerchiamo l'affidamento più recente e valido
     return affidamenti.value.find(a => {
         const aOId = typeof a.orto === 'object' ? (a.orto._id || a.orto.id) : a.orto
+        const startDate = new Date(a.data_inizio)
         const endDate = new Date(a.data_fine)
-        return String(aOId) === oIdStr && endDate >= now
+        return String(aOId) === oIdStr && startDate <= now && endDate >= now
     })
 }
 
-// Recupera il nome dell'associazione assegnataria
 const getAssociazioneName = (ortoId) => {
     const assignment = getCurrentAssignment(ortoId)
-    if (!assignment) return 'Non Assegnato'
-
+    if (!assignment) return '-'
     const assocId = typeof assignment.associazione === 'object' ? (assignment.associazione._id || assignment.associazione.id) : assignment.associazione
     const assocUser = users.value.find(u => String(u._id || u.id) === String(assocId))
-    
-    return assocUser ? (assocUser.nome || 'Associazione') : 'Associazione Sconosciuta'
+    return assocUser ? (assocUser.nome || 'Associazione') : 'Sconosciuta'
 }
 
 const formatDate = (d) => {
     if (!d) return '-'
-    return new Date(d).toLocaleDateString()
+    return new Date(d).toLocaleDateString('it-IT')
 }
+
+// --- Computed Properties ---
+
+const totalOrti = computed(() => orti.value.length)
+const totalAssociazioni = computed(() => users.value.filter(u => u.tipo === 'asso').length)
+
+const ortiNonAssegnati = computed(() => {
+    return orti.value.filter(o => !getCurrentAssignment(o._id || o.id)).length
+})
+
+// --- Logic per Filtri e Paginazione ---
+
+const filteredOrti = computed(() => {
+    let result = orti.value
+
+    if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase()
+        result = result.filter(o => 
+            (o.nome && o.nome.toLowerCase().includes(q)) || 
+            (o.indirizzo && o.indirizzo.toLowerCase().includes(q))
+        )
+    }
+
+    if (filterStatus.value !== 'all') {
+        result = result.filter(o => {
+            const isAssigned = !!getCurrentAssignment(o._id || o.id)
+            return filterStatus.value === 'assigned' ? isAssigned : !isAssigned
+        })
+    }
+
+    return result
+})
+
+const totalPages = computed(() => Math.ceil(filteredOrti.value.length / itemsPerPage))
+
+const paginatedOrti = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return filteredOrti.value.slice(start, end)
+})
+
+watch([searchQuery, filterStatus], () => {
+    currentPage.value = 1
+})
 
 // --- Modals ---
 const selectedOrto = ref(null)
@@ -120,161 +125,259 @@ const openDetailsModal = (orto) => {
     isDetailsModalOpen.value = true
 }
 
+const closeDetailsModal = () => {
+    isDetailsModalOpen.value = false
+    selectedOrto.value = null
+    selectedAssignment.value = null
+}
+
+const goToAssegna = (ortoId) => {
+    router.push(`/comune/assegna/${ortoId}`)
+}
 </script>
 
 <template>
-  <div class="p-6 min-h-[calc(100vh-64px)] w-full flex flex-col items-center gap-8 bg-base-50">
+  <div class="p-6 min-h-[calc(100vh-64px)] w-full bg-base-50">
       
-      <div class="w-full max-w-6xl mt-4">
-          <div class="flex justify-between items-end">
-              <div>
-                  <h1 class="text-3xl font-bold text-secondary mb-2">Dashboard Comune 🏛️</h1>
-                  <p class="text-gray-600">Panoramica degli orti urbani e delle associazioni gestori.</p>
-              </div>
-              <router-link to="/comune/avvisi" class="btn btn-sm btn-ghost gap-2">
-                  🔔 Pubblica Avviso
-              </router-link>
-          </div>
-      </div>
-
-      <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="stat bg-white shadow-lg rounded-box border border-base-200">
-                <div class="stat-figure text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div class="stat-title">Totale Orti Urbani</div>
-                <div class="stat-value text-secondary">{{ totalOrti }}</div>
-                <div class="stat-desc">Censiti nel sistema</div>
-           </div>
-           
-           <div class="stat bg-white shadow-lg rounded-box border border-base-200">
-                <div class="stat-figure text-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <div class="stat-title">Associazioni Partner</div>
-                <div class="stat-value text-primary">{{ totalAssociazioni }}</div>
-                <div class="stat-desc">Registrate a portale</div>
-           </div>
-
-           <div class="stat bg-white shadow-lg rounded-box border border-base-200">
-                <div class="stat-figure text-error">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-                <div class="stat-title">Orti Non Assegnati</div>
-                <div class="stat-value" :class="ortiNonAssegnati > 0 ? 'text-error' : 'text-success'">{{ ortiNonAssegnati }}</div>
-                <div class="stat-desc">Richiedono bando o affidamento</div>
-           </div>
-      </div>
-
-      <div class="w-full max-w-6xl">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-gray-700">Stato Orti Comunali</h2>
-            <router-link to="/comune/mappa" class="btn btn-outline btn-sm">Visualizza Mappa 🗺️</router-link>
-          </div>
-          
-          <div v-if="orti.length === 0" class="alert shadow-lg">
-              <div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>Nessun orto registrato. Inizia creandone uno dalla mappa.</span>
+      <div class="max-w-7xl mx-auto space-y-8">
+      
+          <div>
+              <div class="mb-6">
+                  <h1 class="text-3xl font-bold text-secondary mb-1">Dashboard Comune 🏛️</h1>
+                  <p class="text-gray-600 text-sm">Panoramica gestionale degli orti urbani.</p>
               </div>
           </div>
 
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div v-for="orto in orti" :key="orto._id || orto.id" class="card bg-white shadow-md border border-base-200 hover:shadow-xl transition-all">
-                  <div class="card-body">
-                      <div class="flex justify-between items-start">
-                          <h2 class="card-title text-secondary">{{ orto.nome }}</h2>
-                          <div class="badge gap-2 text-white" 
-                               :class="getCurrentAssignment(orto._id || orto.id) ? 'badge-success' : 'badge-error'">
-                               {{ getCurrentAssignment(orto._id || orto.id) ? 'Affidato' : 'Libero' }}
-                          </div>
+          <div v-if="loading" class="flex justify-center py-12">
+              <span class="loading loading-spinner loading-lg text-primary"></span>
+          </div>
+
+          <div v-else-if="error">
+              <div class="alert alert-error shadow-lg">
+                  <div>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{{ error }}</span>
+                  </div>
+                  <button class="btn btn-sm" @click="fetchData">Riprova</button>
+              </div>
+          </div>
+
+          <template v-else>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
+                      <div class="stat-figure text-secondary">
+                          <span class="text-3xl">🌍</span>
                       </div>
+                      <div class="stat-title text-xs uppercase font-bold tracking-wider">Totale Orti</div>
+                      <div class="stat-value text-secondary text-2xl">{{ totalOrti }}</div>
+                      <div class="stat-desc mt-1">Orti gestiti dal comune</div>
+                  </div>
+                  
+                  <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
+                      <div class="stat-figure text-primary">
+                          <span class="text-3xl">👥</span>
+                      </div>
+                      <div class="stat-title text-xs uppercase font-bold tracking-wider">Associazioni</div>
+                      <div class="stat-value text-primary text-2xl">{{ totalAssociazioni }}</div>
+                      <div class="stat-desc mt-1">Associazioni attive</div>
+                  </div>
 
-                      <p class="text-sm text-gray-500 mb-2">📍 {{ orto.indirizzo }}</p>
-                      
-                      <div class="divider my-1"></div>
+                  <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
+                      <div class="stat-figure text-error">
+                          <span class="text-3xl">⚠️</span>
+                      </div>
+                      <div class="stat-title text-xs uppercase font-bold tracking-wider">Da Assegnare</div>
+                      <div class="stat-value text-2xl" :class="ortiNonAssegnati > 0 ? 'text-error' : 'text-success'">
+                          {{ ortiNonAssegnati }}
+                      </div>
+                      <div class="stat-desc mt-1">Orti disponibili</div>
+                  </div>
+              </div>
 
-                      <div class="text-sm space-y-2">
-                          <div v-if="getCurrentAssignment(orto._id || orto.id)">
-                              <span class="font-bold text-gray-600 block">Gestito da:</span>
-                              <span class="text-lg text-primary font-semibold">
-                                  {{ getAssociazioneName(orto._id || orto.id) }}
-                              </span>
-                              <div class="mt-1 text-xs text-gray-400">
-                                  Scadenza: {{ formatDate(getCurrentAssignment(orto._id || orto.id).data_fine) }}
+              <div class="bg-white shadow-md rounded-xl border border-base-200 overflow-hidden">
+                  
+                  <div class="p-4 border-b border-base-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                      <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                          <h2 class="text-lg font-bold text-gray-700 mr-4">Elenco Orti</h2>
+                          
+                          <div class="form-control">
+                              <div class="input-group">
+                                  <input 
+                                      type="text" 
+                                      placeholder="Cerca nome o via..." 
+                                      class="input input-bordered input-sm w-full max-w-xs" 
+                                      v-model="searchQuery" 
+                                  />
+                                  <button v-if="searchQuery" class="btn btn-sm btn-square" @click="searchQuery = ''">
+                                      ✕
+                                  </button>
                               </div>
                           </div>
-                          <div v-else>
-                              <span class="text-error font-semibold italic">
-                                  Attualmente non gestito.
-                              </span>
-                              <p class="text-xs text-gray-400 mt-1">
-                                  Crea un bando o assegnalo direttamente.
-                              </p>
-                          </div>
+
+                          <select class="select select-bordered select-sm" v-model="filterStatus">
+                              <option value="all">Tutti gli stati</option>
+                              <option value="free">Solo Liberi</option>
+                              <option value="assigned">Solo Affidati</option>
+                          </select>
                       </div>
 
-                      <div class="card-actions justify-end mt-4">
-                          <button class="btn btn-ghost btn-sm" @click="openDetailsModal(orto)">
-                              Dettagli
-                          </button>
-                          <router-link v-if="!getCurrentAssignment(orto._id || orto.id)" 
-                                       to="/comune/associazioni" 
-                                       class="btn btn-secondary btn-sm text-white">
-                              Assegna
+                      <div class="flex gap-2">
+                          <router-link to="/comune/mappa" class="btn btn-outline btn-sm gap-2">
+                              🗺️ Mappa
                           </router-link>
                       </div>
                   </div>
+
+                  <div class="overflow-x-auto w-full">
+                      <table class="table w-full">
+                          <thead class="bg-base-100 text-gray-600">
+                              <tr>
+                                  <th>Nome Orto / Indirizzo</th>
+                                  <th class="text-center">Capacità</th>
+                                  <th>Stato</th>
+                                  <th>Gestione Attuale</th>
+                                  <th class="text-right">Azioni</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr v-for="orto in paginatedOrti" :key="orto._id || orto.id" class="hover:bg-base-50">
+                                  
+                                  <td>
+                                      <div class="flex items-center space-x-3">
+                                          <div class="avatar placeholder">
+                                              <div class="bg-green-100 text-green-700 rounded-full w-10 h-10 flex items-center justify-center">
+                                                  <span class="text-lg">🌱</span>
+                                              </div>
+                                          </div>
+                                          <div>
+                                              <div class="font-bold text-gray-700">{{ orto.nome }}</div>
+                                              <div class="text-xs text-gray-500">{{ orto.indirizzo }}</div>
+                                          </div>
+                                      </div>
+                                  </td>
+
+                                  <td class="text-center">
+                                      <span class="font-mono font-bold text-lg">{{ orto.lotti ? orto.lotti.length : 0 }}</span>
+                                      <span class="text-xs text-gray-400 block">Lotti</span>
+                                  </td>
+
+                                  <td>
+                                      <div class="badge gap-2" 
+                                           :class="getCurrentAssignment(orto._id || orto.id) ? 'badge-success text-white' : 'badge-error text-white'">
+                                           {{ getCurrentAssignment(orto._id || orto.id) ? 'Affidato' : 'Libero' }}
+                                      </div>
+                                  </td>
+
+                                  <td>
+                                      <div v-if="getCurrentAssignment(orto._id || orto.id)">
+                                          <div class="font-semibold text-sm">{{ getAssociazioneName(orto._id || orto.id) }}</div>
+                                          <div class="text-xs text-gray-500">
+                                              Scade: {{ formatDate(getCurrentAssignment(orto._id || orto.id).data_fine) }}
+                                          </div>
+                                      </div>
+                                      <div v-else class="text-gray-400 text-sm italic">
+                                          - Nessun gestore -
+                                      </div>
+                                  </td>
+
+                                  <td class="text-right">
+                                      <button class="btn btn-ghost btn-xs mr-2" @click="openDetailsModal(orto)">
+                                          👁️ Dettagli
+                                      </button>
+                                  </td>
+                              </tr>
+
+                              <tr v-if="paginatedOrti.length === 0">
+                                  <td colspan="5" class="text-center py-8 text-gray-500">
+                                      <div class="flex flex-col items-center gap-2">
+                                          <span class="text-4xl">🔍</span>
+                                          <span>Nessun orto trovato con i filtri attuali.</span>
+                                      </div>
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+
+                  <div class="p-4 border-t border-base-200 flex justify-between items-center bg-gray-50">
+                      <span class="text-xs text-gray-500">
+                          Mostrando {{ paginatedOrti.length }} di {{ filteredOrti.length }} orti
+                      </span>
+                      <div class="btn-group">
+                          <button class="btn btn-sm" :disabled="currentPage === 1" @click="currentPage--">«</button>
+                          <button class="btn btn-sm no-animation bg-white hover:bg-white text-gray-700 cursor-default">
+                              Pagina {{ currentPage }} di {{ totalPages || 1 }}
+                          </button>
+                          <button class="btn btn-sm" :disabled="currentPage >= totalPages" @click="currentPage++">»</button>
+                      </div>
+                  </div>
               </div>
-          </div>
+          </template>
+
+          <dialog class="modal" :class="{ 'modal-open': isDetailsModalOpen }">
+              <div class="modal-box max-w-2xl">
+                  <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="closeDetailsModal">✕</button>
+                  
+                  <h3 class="font-bold text-2xl mb-4 text-secondary" v-if="selectedOrto">
+                      {{ selectedOrto.nome }}
+                  </h3>
+                  
+                  <div v-if="selectedOrto" class="space-y-4">
+                      <div class="grid grid-cols-2 gap-4">
+                          <div class="bg-base-100 p-4 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Indirizzo</p>
+                              <p class="text-sm font-semibold">{{ selectedOrto.indirizzo }}</p>
+                          </div>
+                          <div class="bg-base-100 p-4 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Comune</p>
+                              <p class="text-sm font-semibold">{{ selectedOrto.comune || 'Trento' }}</p>
+                          </div>
+                          <div class="bg-base-100 p-4 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Lotti Totali</p>
+                              <p class="text-2xl font-bold text-primary">{{ selectedOrto.lotti?.length || 0 }}</p>
+                          </div>
+                          <div class="bg-base-100 p-4 rounded-lg">
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Stato</p>
+                              <div class="badge badge-lg" :class="selectedAssignment ? 'badge-success' : 'badge-error'">
+                                  {{ selectedAssignment ? 'Affidato' : 'Libero' }}
+                              </div>
+                          </div>
+                      </div>
+
+                      <div v-if="selectedAssignment" class="alert alert-success shadow-sm">
+                          <div class="w-full">
+                              <h4 class="font-bold text-lg mb-2">Affidamento Attivo</h4>
+                              <div class="space-y-1">
+                                  <p><span class="font-semibold">Associazione:</span> {{ getAssociazioneName(selectedOrto._id || selectedOrto.id) }}</p>
+                                  <p><span class="font-semibold">Data Inizio:</span> {{ formatDate(selectedAssignment.data_inizio) }}</p>
+                                  <p><span class="font-semibold">Data Scadenza:</span> {{ formatDate(selectedAssignment.data_fine) }}</p>
+                              </div>
+                          </div>
+                      </div>
+                      
+                      <div v-else class="alert alert-warning shadow-sm">
+                          <div>
+                              <h4 class="font-bold">Non Assegnato</h4>
+                              <p class="text-sm">Questo orto è libero. Puoi assegnarlo a un'associazione.</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div class="modal-action">
+                      <button 
+                          v-if="selectedOrto && !selectedAssignment" 
+                          class="btn btn-secondary text-white"
+                          @click="goToAssegna(selectedOrto._id || selectedOrto.id)">
+                          Assegna Orto
+                      </button>
+                      <button class="btn" @click="closeDetailsModal">Chiudi</button>
+                  </div>
+              </div>
+              <div class="modal-backdrop bg-black bg-opacity-50" @click="closeDetailsModal"></div>
+          </dialog>
+
       </div>
-
-      <dialog class="modal" :class="{ 'modal-open': isDetailsModalOpen }">
-          <div class="modal-box">
-              <h3 class="font-bold text-lg mb-4 text-secondary" v-if="selectedOrto">
-                  Dettagli {{ selectedOrto.nome }}
-              </h3>
-              
-              <div v-if="selectedOrto" class="space-y-4">
-                  
-                  <div class="grid grid-cols-2 gap-4 bg-base-100 p-4 rounded-lg">
-                      <div>
-                          <p class="text-xs text-gray-500 uppercase font-bold">Lotti Totali</p>
-                          <p class="text-xl font-bold">{{ selectedOrto.lotti?.length || 0 }}</p>
-                      </div>
-                      <div>
-                          <p class="text-xs text-gray-500 uppercase font-bold">Comune</p>
-                          <p class="text-xl font-bold">{{ selectedOrto.comune }}</p>
-                      </div>
-                  </div>
-
-                  <div v-if="selectedAssignment" class="alert alert-success shadow-sm">
-                      <div>
-                          <h4 class="font-bold">Affidamento Attivo</h4>
-                          <p class="text-sm">Associazione: {{ getAssociazioneName(selectedOrto._id || selectedOrto.id) }}</p>
-                          <p class="text-sm">Dal: {{ formatDate(selectedAssignment.data_inizio) }}</p>
-                          <p class="text-sm">Al: {{ formatDate(selectedAssignment.data_fine) }}</p>
-                      </div>
-                  </div>
-                  
-                  <div v-else class="alert alert-warning shadow-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                      <div>
-                          <h3 class="font-bold">Attenzione</h3>
-                          <div class="text-xs">Questo orto non è attualmente gestito da nessuna associazione. È necessario avviare una procedura di assegnazione.</div>
-                      </div>
-                  </div>
-
-              </div>
-
-              <div class="modal-action">
-                  <button class="btn" @click="isDetailsModalOpen = false">Chiudi</button>
-              </div>
-          </div>
-          <form method="dialog" class="modal-backdrop">
-                <button @click="isDetailsModalOpen = false">close</button>
-          </form>
-      </dialog>
-
   </div>
 </template>
