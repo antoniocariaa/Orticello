@@ -104,6 +104,12 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/associazione/richieste',
+            name: 'associazione-richieste',
+            component: () => import('../views/associazione/RichiesteAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/'
         }
