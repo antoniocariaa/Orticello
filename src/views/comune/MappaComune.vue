@@ -58,7 +58,7 @@ const fetchOrti = async () => {
 
 const fetchAffidamenti = async () => {
     try {
-        const response = await api.get('/affidaOrti')
+        const response = await api.get('/affidaOrti/active')
         affidamenti.value = Array.isArray(response) ? response : (response.data || [])
     } catch (e) {
         console.error('Failed to fetch affidamenti', e)

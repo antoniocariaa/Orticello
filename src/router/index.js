@@ -67,6 +67,12 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/comune/bandi',
+            name: 'comune-bandi',
+            component: () => import('../views/comune/BandiComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/comune/mappa',
             name: 'comune-mappa',
             component: () => import('../views/comune/MappaComune.vue'),
@@ -95,6 +101,12 @@ const router = createRouter({
             path: '/associazione/bandi',
             name: 'associazione-bandi',
             component: () => import('../views/associazione/BandiAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/associazione/richieste',
+            name: 'associazione-richieste',
+            component: () => import('../views/associazione/RichiesteAssociazione.vue'),
             meta: { requiresAuth: true }
         },
         {
