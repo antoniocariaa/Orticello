@@ -94,6 +94,11 @@ const logout = () => {
                     📢 Avvisi
                 </router-link>
             </li>
+            <li>
+                <router-link to="/comune/bandi" active-class="active" class="font-medium">
+                    📜 Bandi
+                </router-link>
+            </li>
          </ul>
 
          <!-- Associazione Navbar Menu -->
@@ -171,6 +176,9 @@ const logout = () => {
              </li>
              <li>
                 <router-link to="/comune/avvisi" active-class="active">📢 Avvisi</router-link>
+             </li>
+             <li>
+                <router-link to="/comune/bandi" active-class="active">📜 Bandi</router-link>
              </li>
              <li>
                 <a @click="logout" class="text-error font-semibold">🚪 Logout</a>
