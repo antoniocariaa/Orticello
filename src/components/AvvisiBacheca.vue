@@ -92,8 +92,8 @@ export default {
         }
       }
       
-      // Read status filter (only if user is authenticated)
-      if (filterLetto.value !== 'all' && store.token) {
+      // Read status filter
+      if (filterLetto.value !== 'all') {
         params.append('letto', filterLetto.value === 'letto' ? 'true' : 'false')
       }
       
@@ -144,7 +144,7 @@ export default {
         }
         
         // Load read status if user is authenticated
-        if (store.token && avvisi.value.length > 0) {
+        if (avvisi.value.length > 0) {
           await loadReadStatus()
         }
       } catch (err) {
@@ -174,7 +174,7 @@ export default {
     
     // Load read status for current avvisi
     const loadReadStatus = async () => {
-      if (!store.token || avvisi.value.length === 0) return
+      if (avvisi.value.length === 0) return
       
       try {
         const avvisiIds = avvisi.value.map(a => a._id)
@@ -187,11 +187,6 @@ export default {
     
     // Marca come letto
     const segnaComeLetto = async (avvisoId) => {
-      if (!store.token) {
-        showToast('Devi effettuare il login per marcare gli avvisi come letti', 'error')
-        return
-      }
-      
       try {
         await api.put(`/avvisi/${avvisoId}/read`)
         // Update local state
@@ -472,8 +467,24 @@ export default {
           <div class="card-body">
             <!-- Header della card -->
             <div class="flex items-start justify-between gap-4 mb-3">
-            <div class="flex-1">
-              <!-- menu azioni -->
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="badge badge-sm" :class="avviso.tipo === 'comu' ? 'badge-primary' : 'badge-secondary'">
+                    {{ getEmittenteLabel(avviso) }}
+                  </span>
+                  <span v-if="avviso.categoria" class="badge badge-sm badge-outline">
+                    {{ avviso.categoria }}
+                  </span>
+                  <span v-if="!isLetto(avviso._id)" class="badge badge-sm badge-warning">
+                    Nuovo
+                  </span>
+                </div>
+                <h2 class="card-title text-xl">
+                  {{ avviso.titolo }}
+                </h2>
+              </div>
+              
+              <!-- Pulsante menu azioni -->
               <div class="dropdown dropdown-end">
                 <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-5 h-5 stroke-current">
@@ -509,7 +520,6 @@ export default {
                   </template>
                 </ul>
               </div>
-            </div>
             </div>
 
             <!-- Data -->
@@ -615,21 +625,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Animazione per gli avvisi non letti */
-.border-l-warning {
-  animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse-border {
-  0%, 100% {
-    border-left-width: 4px;
-    opacity: 1;
-  }
-  50% {
-    border-left-width: 6px;
-    opacity: 0.8;
-  }
-}
-</style>
