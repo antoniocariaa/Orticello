@@ -60,9 +60,22 @@ const getCurrentAssignment = (ortoId) => {
 const getAssociazioneName = (ortoId) => {
     const assignment = getCurrentAssignment(ortoId)
     if (!assignment) return '-'
-    const assocId = typeof assignment.associazione === 'object' ? (assignment.associazione._id || assignment.associazione.id) : assignment.associazione
+    
+    // Se l'associazione è già un oggetto popolato, usa direttamente i suoi dati
+    if (typeof assignment.associazione === 'object' && assignment.associazione !== null) {
+        return assignment.associazione.nome || assignment.associazione.username || 'Associazione'
+    }
+    
+    // Altrimenti cerca l'utente associazione nella lista users
+    const assocId = assignment.associazione
     const assocUser = users.value.find(u => String(u._id || u.id) === String(assocId))
-    return assocUser ? (assocUser.nome || 'Associazione') : 'Sconosciuta'
+    
+    if (!assocUser) {
+        console.warn(`Associazione con ID ${assocId} non trovata`)
+        return 'Associazione non trovata'
+    }
+    
+    return assocUser.nome || assocUser.username || 'Associazione'
 }
 
 const formatDate = (d) => {
