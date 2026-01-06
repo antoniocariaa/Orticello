@@ -24,6 +24,7 @@ const fetchData = async () => {
         const userId = user._id || user.id
 
        
+        const affidaResponse = await api.get('/affidaLotti')
         const allAffidi = Array.isArray(affidaResponse) ? affidaResponse : (affidaResponse.data || [])
         
         // Find active assignment for me
