@@ -34,12 +34,14 @@ const router = createRouter({
         {
             path: '/login',
             name: 'login',
-            component: LoginView
+            component: LoginView,
+            meta: { hideNavbar: true }
         },
         {
             path: '/register',
             name: 'register',
-            component: RegisterView
+            component: RegisterView,
+            meta: { hideNavbar: true }
         },
         // Comune Routes
         {

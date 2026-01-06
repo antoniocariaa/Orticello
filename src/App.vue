@@ -1,10 +1,11 @@
 <script setup>
 import { onMounted } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
+import { RouterView, useRouter, useRoute } from 'vue-router'
 import { store } from './store'
 import api from './services/api'
 
 const router = useRouter()
+const route = useRoute()
 
 onMounted(async () => {
   const token = localStorage.getItem('token')
@@ -44,7 +45,7 @@ const logout = () => {
 <template>
   <div class="min-h-screen bg-base-200 font-sans overflow-x-hidden">
     <!-- Navbar -->
-    <div class="navbar bg-base-100 shadow-sm w-full">
+    <div v-if="!route.meta.hideNavbar" class="navbar bg-base-100 shadow-sm w-full">
       <div class="flex-none">
         <router-link to="/" class="btn btn-ghost text-xl text-primary font-bold">Orticello</router-link>
       </div>
