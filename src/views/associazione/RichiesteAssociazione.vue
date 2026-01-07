@@ -4,7 +4,10 @@ import api from '../../services/api'
 import { store } from '../../store'
 
 const orti = ref([])
-const requests = ref([])
+const pendingRequestsData = ref([]) // Solo pending dal backend
+const historicalRequestsData = ref([]) // Solo storico dal backend
+const storicoLoadedForOrto = ref({}) // Traccia quali orti hanno lo storico caricato
+const loadingStorico = ref({}) // Traccia il caricamento per ogni orto
 const loading = ref(true)
 const toast = ref({ show: false, message: '', type: 'success' })
 
@@ -50,46 +53,45 @@ const fetchData = async () => {
             ? (user.associazione._id || user.associazione.id) 
             : user.associazione
         
-        //Fetch Orti, Requests, USERS, and AffidaOrti
-        const [ortiResponse, requestsResponse, usersResponse, affidaOrtoResponse] = await Promise.all([
+        //Fetch Orti, Pending Requests, USERS, and AffidaOrti
+        const [ortiResponse, pendingResponse, usersResponse, affidaOrtoResponse] = await Promise.all([
             api.get('/orti'),
-            api.get('/affidaLotti'),
+            api.get('/affidaLotti/pending'),
             api.get('/utenti'),
             api.get('/affidaOrti')
         ])
 
         const allOrti = Array.isArray(ortiResponse) ? ortiResponse : (ortiResponse.data || [])
-        const allRequests = Array.isArray(requestsResponse) ? requestsResponse : (requestsResponse.data || [])
+        const pendingData = Array.isArray(pendingResponse) ? pendingResponse : (pendingResponse.data || [])
         const allUsers = Array.isArray(usersResponse) ? usersResponse : (usersResponse.data || [])
         const allAffidaOrti = Array.isArray(affidaOrtoResponse) ? affidaOrtoResponse : (affidaOrtoResponse.data || [])
         
         users.value = allUsers
 
+        console.log('Pending requests from API:', pendingData.length)
+
         // Filter Orti for this Association via AffidaOrto
-        // Find which Orti are assigned to my Association AND are currently active
-        const now = new Date()
+        // Find which Orti are assigned to my Association (current or past)
         const myAffidi = allAffidaOrti.filter(ao => {
              const aId = typeof ao.associazione === 'object' ? (ao.associazione._id || ao.associazione.id) : ao.associazione
              
-             // Check ownership
-             if (String(aId) !== String(myAssocId)) return false
-
-             // Check dates (inclusive)
-             const start = new Date(ao.data_inizio)
-             const end = new Date(ao.data_fine)
-             
-             return now >= start && now <= end
+             // Check ownership only (remove date filtering to show all assigned orti)
+             return String(aId) === String(myAssocId)
         })
+
+        console.log('My Affidi Orti:', myAffidi.length, myAffidi)
 
         const myOrtoIds = new Set(myAffidi.map(ao => {
             const o = ao.orto
             return String(typeof o === 'object' ? (o._id || o.id) : o)
         }))
 
+        console.log('My Orto IDs:', myOrtoIds)
+
         // Filter allOrti to keep only those present in myOrtoIds
         orti.value = allOrti.filter(o => myOrtoIds.has(String(o._id || o.id)))
         
-        console.log('Filtered Orti:', orti.value.length)
+        console.log('Filtered Orti:', orti.value.length, orti.value.map(o => ({ id: o._id, nome: o.nome })))
 
         // Collect all unique Lotto IDs belonging to my Orti
         const myLottoIds = new Set()
@@ -104,16 +106,10 @@ const fetchData = async () => {
         
         console.log('My Lotto IDs:', myLottoIds)
 
-        // Filter Requests
-        console.log('Total Requests Fetched:', allRequests.length)
-
-        requests.value = allRequests.filter(r => {
-             const lotto = r.lotto
-             const lottoId = typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto
-             return lottoId && myLottoIds.has(String(lottoId))
-        })
+        // Le richieste pending arrivano già filtrate dal backend per l'associazione
+        pendingRequestsData.value = pendingData
         
-        console.log('My Relevant Requests:', requests.value.length)
+        console.log('Pending requests (from /pending endpoint):', pendingRequestsData.value.length)
 
     } catch (e) {
         console.error('Error fetching data', e)
@@ -128,44 +124,114 @@ onMounted(fetchData)
 const getUserDetails = (userId) => {
     if (!userId) return null
     const id = typeof userId === 'object' ? (userId._id || userId.id) : userId
-    return users.value.find(u => (u._id || u.id) === id) || null
+    const idStr = String(id)
+    return users.value.find(u => {
+        const uId = u._id || u.id
+        return String(uId) === idStr
+    }) || null
 }
 
-// Group requests by Lotto for easier UI
-const requestsByLotto = computed(() => {
-    const groups = {}
+// Ottieni il numero progressivo del lotto nell'orto
+const getLottoNumber = (lottoId, orto) => {
+    if (!orto || !orto.lotti) return 'N/A'
+    const index = orto.lotti.findIndex(l => {
+        const lId = typeof l === 'object' ? (l._id || l.id) : l
+        return String(lId) === String(lottoId)
+    })
+    return index !== -1 ? `Lotto ${index + 1}` : 'N/A'
+}
+
+// Carica lo storico per un orto specifico
+const loadStoricoForOrto = async (ortoId) => {
+    // Se è già caricato e aggiornato, non ricaricare
+    if (storicoLoadedForOrto.value[ortoId]) {
+        console.log(`Storico già caricato per orto ${ortoId}`)
+        return
+    }
     
-    requests.value.forEach(r => {
-        const lotto = r.lotto
-        const lottoId = typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto
-        const lIdStr = String(lottoId)
+    loadingStorico.value[ortoId] = true
+    
+    try {
+        const storicoResponse = await api.get('/affidaLotti/storico')
+        const storicoData = Array.isArray(storicoResponse) ? storicoResponse : (storicoResponse.data || [])
         
-        if (!groups[lIdStr]) {
-            const parentOrto = orti.value.find(o => 
-                o.lotti.some(l => {
-                     const lId = typeof l === 'object' ? (l._id || l.id) : l
-                     return String(lId) === lIdStr
-                })
-            )
-            
-            groups[lIdStr] = {
-                lottoId: lIdStr,
-                lottoDetails: lotto, 
-                ortoName: parentOrto ? parentOrto.nome : 'Orto Sconosciuto',
-                requests: []
-            }
+        console.log('Historical requests loaded:', storicoData.length)
+        
+        // Sostituisci i dati storici con quelli nuovi
+        historicalRequestsData.value = storicoData
+        
+        // Marca come caricato
+        storicoLoadedForOrto.value[ortoId] = true
+        
+    } catch (e) {
+        console.error('Error loading storico:', e)
+        showToast('Errore nel caricamento dello storico', 'error')
+    } finally {
+        loadingStorico.value[ortoId] = false
+    }
+}
+
+// Forza il ricaricamento dello storico (ad esempio dopo aver accettato/rifiutato una richiesta)
+const refreshStorico = () => {
+    storicoLoadedForOrto.value = {}
+    historicalRequestsData.value = []
+}
+
+// Raggruppa i dati per orto
+const dataByOrto = computed(() => {
+    const ortoMap = {}
+    
+    // Inizializza ogni orto
+    orti.value.forEach(orto => {
+        const ortoId = String(orto._id || orto.id)
+        ortoMap[ortoId] = {
+            orto: orto,
+            pending: [],
+            storico: []
         }
-        
-        // Enrich request with User Details
-        const userDetails = getUserDetails(r.utente)
-        
-        groups[lIdStr].requests.push({
-            ...r,
-            userDetails // Attach found user object
-        })
     })
     
-    return groups
+    // Funzione helper per trovare l'orto di un lotto
+    const findOrtoForLotto = (lottoId) => {
+        return orti.value.find(o => 
+            o.lotti && o.lotti.some(l => {
+                const lId = typeof l === 'object' ? (l._id || l.id) : l
+                return String(lId) === String(lottoId)
+            })
+        )
+    }
+    
+    // Aggiungi richieste pendenti
+    pendingRequestsData.value.forEach(req => {
+        const lottoId = typeof req.lotto === 'object' ? (req.lotto._id || req.lotto.id) : req.lotto
+        const orto = findOrtoForLotto(lottoId)
+        if (orto) {
+            const ortoId = String(orto._id || orto.id)
+            if (ortoMap[ortoId]) {
+                ortoMap[ortoId].pending.push({
+                    ...req,
+                    userDetails: getUserDetails(req.utente)
+                })
+            }
+        }
+    })
+    
+    // Aggiungi storico solo per gli orti che lo hanno caricato
+    historicalRequestsData.value.forEach(req => {
+        const lottoId = typeof req.lotto === 'object' ? (req.lotto._id || req.lotto.id) : req.lotto
+        const orto = findOrtoForLotto(lottoId)
+        if (orto) {
+            const ortoId = String(orto._id || orto.id)
+            if (ortoMap[ortoId]) {
+                ortoMap[ortoId].storico.push({
+                    ...req,
+                    userDetails: getUserDetails(req.utente)
+                })
+            }
+        }
+    })
+    
+    return ortoMap
 })
 
 const confirmAccept = async () => {
@@ -178,35 +244,17 @@ const confirmAccept = async () => {
     const request = requestToAccept.value
 
     try {
-        // Accept this request with END DATE
-        await api.put(`/affidaLotti/${request._id}`, { 
-            stato: 'accepted',
-            data_inizio: new Date(),
-            data_fine: new Date(acceptanceEndDate.value)
+        // Accept this request with END DATE using the correct /gestisci endpoint
+        await api.put(`/affidaLotti/${request._id}/gestisci`, { 
+            azione: 'accetta',
+            data_inizio: new Date().toISOString().split('T')[0],
+            data_fine: acceptanceEndDate.value
         })
         
-        // Reject all other PENDING requests:
-        const lottoId = typeof request.lotto === 'object' ? (request.lotto._id || request.lotto.id) : request.lotto
-        const userId = typeof request.utente === 'object' ? (request.utente._id || request.utente.id) : request.utente
-
-        const siblings = requests.value.filter(r => {
-             if (r._id === request._id) return false // Skip the one we just accepted
-             if (r.stato !== 'pending') return false // Skip non-pending
-
-             const rLottoId = typeof r.lotto === 'object' ? (r.lotto._id || r.lotto.id) : r.lotto
-             const rUserId = typeof r.utente === 'object' ? (r.utente._id || r.utente.id) : r.utente
-
-             // Reject if same Lotto OR same User
-             return String(rLottoId) === String(lottoId) || String(rUserId) === String(userId)
-        })
-        
-        await Promise.all(siblings.map(sib => 
-            api.put(`/affidaLotti/${sib._id}`, { stato: 'rejected' })
-        ))
-        
-        showToast('Richiesta accettata. Altre richieste incompatibili rifiutate.', 'success')
+        showToast('Richiesta accettata con successo!', 'success')
         const modal = document.getElementById('accept_modal')
         if (modal) modal.close()
+        refreshStorico() // Invalida lo storico
         await fetchData() // Refresh
     } catch (e) {
         console.error('Error accepting request', e)
@@ -216,8 +264,9 @@ const confirmAccept = async () => {
 
 const handleReject = async (request) => {
     try {
-        await api.put(`/affidaLotti/${request._id}`, { stato: 'rejected' })
+        await api.put(`/affidaLotti/${request._id}/gestisci`, { azione: 'rifiuta' })
         showToast('Richiesta rifiutata.', 'warning')
+        refreshStorico() // Invalida lo storico
         await fetchData()
     } catch (e) {
         console.error('Error rejecting request', e)
@@ -233,84 +282,170 @@ const formatDate = (d) => {
 
 <template>
 <div class="p-6 min-h-[calc(100vh-64px)] w-full flex flex-col items-center gap-6">
-    <div class="w-full max-w-5xl">
-        <h1 class="text-3xl font-bold text-primary mb-2">Richieste Lotti</h1>
-        <p class="text-gray-600">Gestisci le richieste di assegnazione per i tuoi lotti.</p>
+    <div class="w-full max-w-6xl">
+        <h1 class="text-3xl font-bold text-primary mb-2">Gestione Richieste e Assegnazioni</h1>
     </div>
 
     <!-- Loading -->
     <div v-if="loading" class="loading loading-spinner loading-lg text-primary"></div>
 
     <!-- Empty State -->
-    <div v-else-if="requests.length === 0" class="w-full max-w-5xl card bg-base-100 shadow-xl p-10 text-center opacity-70">
-        <h3 class="text-xl font-bold mb-2">Nessuna richiesta pending</h3>
-        <p>Non ci sono nuove richieste per i tuoi orti al momento.</p>
+    <div v-else-if="orti.length === 0" class="w-full max-w-6xl card bg-base-100 shadow-xl p-10 text-center opacity-70">
+        <h3 class="text-xl font-bold mb-2">Nessun orto assegnato</h3>
+        <p>Non ci sono orti gestiti dalla tua associazione al momento.</p>
     </div>
 
-    <!-- List -->
-    <div v-else class="w-full max-w-5xl flex flex-col gap-6">
-        
-        <div v-for="(group, lId) in requestsByLotto" :key="lId" class="card bg-base-100 shadow-xl border border-base-200">
+    <!-- List by Orto -->
+    <div v-else class="w-full max-w-6xl flex flex-col gap-8">
+        <div v-for="(data, ortoId) in dataByOrto" :key="ortoId" class="card bg-base-100 shadow-2xl border-2 border-primary/20">
             <div class="card-body">
-                <h2 class="card-title text-secondary">
-                    Lotto in {{ group.ortoName }}
-                </h2>
-                <div class="text-xs uppercase tracking-wide opacity-50 mb-4">ID: {{ lId }}</div>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <div class="badge badge-outline">
-                        Dimensioni: {{ group.lottoDetails?.dimensione || '-' }} m²
+                <!-- Orto Header -->
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h2 class="card-title text-2xl text-primary mb-1">{{ data.orto.nome }}</h2>
+                        <p class="text-sm text-gray-500">{{ data.orto.indirizzo }}</p>
+                        <div class="flex gap-2 mt-2">
+                            <div class="badge badge-outline">{{ data.orto.lotti?.length || 0 }} lotti</div>
+                        </div>
                     </div>
-                    <div class="badge badge-outline" :class="group.lottoDetails?.sensori ? 'badge-success' : 'badge-ghost'">
-                        {{ group.lottoDetails?.sensori ? 'Con Sensori' : 'Senza Sensori' }}
+                    <div class="stats shadow-sm">
+                        <div class="stat p-3">
+                            <div class="stat-title text-xs">Pendenti</div>
+                            <div class="stat-value text-xl text-warning">{{ data.pending.length }}</div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="table w-full">
-                        <thead>
-                            <tr>
-                                <th>Data Richiesta</th>
-                                <th>Richiedente</th>
-                                <th>Stato</th>
-                                <th class="text-right">Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="req in group.requests" :key="req._id">
-                                <td>{{ formatDate(req.createdAt || req.data_richiesta) }}</td>
-                                <td>
-                                    <div class="font-bold cursor-pointer hover:text-primary hover:underline" @click="openUserModal(req.userDetails || req.utente)">
-                                        {{ req.userDetails?.nome || req.utente?.nome || 'Utente' }} 
-                                        {{ req.userDetails?.cognome || req.utente?.cognome || '' }}
-                                    </div>
-                                    <div class="text-xs opacity-50">{{ req.userDetails?.email || req.utente?.email || 'No email' }}</div>
-                                </td>
-                                <td>
-                                    <div class="badge" :class="{
-                                        'badge-warning': req.stato === 'pending',
-                                        'badge-success text-white': req.stato === 'accepted',
-                                        'badge-error text-white': req.stato === 'rejected'
-                                    }">
-                                        {{ req.stato }}
-                                    </div>
-                                </td>
-                                <td class="text-right">
-                                    <div v-if="req.stato === 'pending'" class="join">
-                                        <button @click="openAcceptModal(req)" class="btn btn-sm btn-success join-item text-white">Accetta</button>
-                                        <button @click="handleReject(req)" class="btn btn-sm btn-error join-item text-white">Rifiuta</button>
-                                    </div>
 
+                <!-- Richieste Pendenti -->
+                <div v-if="data.pending.length > 0" class="mb-6">
+                    <h3 class="text-lg font-bold text-warning mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                        </svg>
+                        Richieste Pendenti ({{ data.pending.length }})
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Lotto</th>
+                                    <th>Richiedente</th>
+                                    <th class="text-right">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="req in data.pending" :key="req._id">
+                                    <td>{{ formatDate(req.createdAt || req.data_richiesta) }}</td>
+                                    <td>
+                                        <div class="font-semibold">{{ getLottoNumber(req.lotto?._id || req.lotto?.id || req.lotto, data.orto) }}</div>
+                                        <div class="text-xs opacity-60">{{ req.lotto?.dimensione }} m²</div>
+                                    </td>
+                                    <td>
+                                        <div class="font-bold cursor-pointer hover:text-primary hover:underline" 
+                                             @click="openUserModal(req.userDetails)">
+                                            {{ req.userDetails?.nome || req.utente?.nome || 'Utente' }} 
+                                            {{ req.userDetails?.cognome || req.utente?.cognome || '' }}
+                                        </div>
+                                        <div class="text-xs opacity-50">{{ req.userDetails?.email || req.utente?.email || 'No email' }}</div>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="join">
+                                            <button @click="openAcceptModal(req)" 
+                                                    class="btn btn-sm btn-success join-item text-white">
+                                                Accetta
+                                            </button>
+                                            <button @click="handleReject(req)" 
+                                                    class="btn btn-sm btn-error join-item text-white">
+                                                Rifiuta
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                                    <span v-else class="text-xs opacity-50 italic">Processata</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Storico -->
+                <div>
+                    <details class="collapse collapse-arrow bg-base-200" @toggle="(e) => e.target.open && loadStoricoForOrto(ortoId)">
+                        <summary class="collapse-title text-lg font-bold cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Storico Assegnazioni</span>
+                                <span v-if="storicoLoadedForOrto[ortoId]" class="badge badge-sm badge-ghost">{{ data.storico.length }}</span>
+                            </div>
+                        </summary>
+                        <div class="collapse-content">
+                            <!-- Loading -->
+                            <div v-if="loadingStorico[ortoId]" class="flex justify-center py-8">
+                                <div class="loading loading-spinner loading-md text-primary"></div>
+                            </div>
+                            
+                            <!-- Empty State -->
+                            <div v-else-if="storicoLoadedForOrto[ortoId] && data.storico.length === 0" 
+                                 class="text-center py-8 opacity-50">
+                                <p>Nessuna assegnazione storica per questo orto</p>
+                            </div>
+                            
+                            <!-- Storico Table -->
+                            <div v-else-if="data.storico.length > 0" class="overflow-x-auto mt-4">
+                                <table class="table table-sm w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Data Richiesta</th>
+                                            <th>Lotto</th>
+                                            <th>Richiedente</th>
+                                            <th>Periodo</th>
+                                            <th>Stato</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="req in data.storico" :key="req._id" class="hover">
+                                            <td>{{ formatDate(req.createdAt || req.data_richiesta) }}</td>
+                                            <td>
+                                                <div class="font-semibold text-sm">{{ getLottoNumber(req.lotto?._id || req.lotto?.id || req.lotto, data.orto) }}</div>
+                                                <div class="text-xs opacity-60">{{ req.lotto?.dimensione }} m²</div>
+                                            </td>
+                                            <td>
+                                                <div class="font-bold cursor-pointer hover:text-primary hover:underline text-sm" 
+                                                     @click="openUserModal(req.userDetails)">
+                                                    {{ req.userDetails?.nome || req.utente?.nome || 'Utente' }} 
+                                                    {{ req.userDetails?.cognome || req.utente?.cognome || '' }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span v-if="req.data_inizio && req.data_fine" class="text-xs">
+                                                    {{ formatDate(req.data_inizio) }} - {{ formatDate(req.data_fine) }}
+                                                </span>
+                                                <span v-else class="text-xs opacity-50">-</span>
+                                            </td>
+                                            <td>
+                                                <div class="badge badge-sm" :class="{
+                                                    'badge-success': req.stato === 'accepted',
+                                                    'badge-error': req.stato === 'rejected'
+                                                }">
+                                                    {{ req.stato === 'accepted' ? 'Accettata' : 'Rifiutata' }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Empty State per orto -->
+                <div v-if="data.pending.length === 0" 
+                     class="text-center py-8 opacity-50">
+                    <p>Nessuna richiesta pendente per questo orto</p>
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- Accept Confirmation Modal -->
