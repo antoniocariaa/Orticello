@@ -121,6 +121,28 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token')
 
+    // Redirect logged in users away from auth pages
+    if (token && (to.name === 'login' || to.name === 'register')) {
+        const userStr = localStorage.getItem('user')
+        let role = null
+
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                role = user.tipo
+            } catch (e) {
+                console.error('Failed to parse user data', e)
+            }
+        }
+
+        switch (role) {
+            case 'citt': return next('/cittadino/orto')
+            case 'comu': return next('/comune/dashboard')
+            case 'asso': return next('/associazione/dashboard')
+            default: return next('/')
+        }
+    }
+
     if (to.meta.requiresAuth && !token) {
         next('/login')
     } else {
