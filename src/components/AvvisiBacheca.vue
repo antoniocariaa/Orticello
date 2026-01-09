@@ -29,7 +29,10 @@ export default {
     const loading = ref(false)
     const error = ref(null)
     
-    // Filtri
+    // NUOVO: Stato per le associazioni visibili all'utente (se cittadino)
+    const userAssociazioni = ref([])
+    
+    // Filtri UI
     const searchText = ref('')
     const filterEmittente = ref('all') // all, comu, asso
     const filterCategoria = ref('all')
@@ -42,10 +45,10 @@ export default {
     const totalItems = ref(0)
     const itemsPerPage = ref(20)
     
-    // Stato lettura
+    // Stato lettura locale
     const avvisiLetti = ref({}) // { avvisoId: { letto: boolean, dataLettura: Date } }
     
-    // Categorie disponibili (loaded from all avvisi)
+    // Categorie disponibili
     const categorie = ref([])
     
     // Toast
@@ -53,6 +56,22 @@ export default {
     const showToast = (message, type = 'success') => {
       toast.value = { show: true, message, type }
       setTimeout(() => toast.value.show = false, 3000)
+    }
+    
+    const loadUserAssociazioni = async () => {
+      // Eseguiamo solo se c'è un utente loggato ed è un cittadino
+      if (!store.user || !store.user._id || store.user.tipo !== 'citt') return
+      
+      try {
+        // Nota: Assicurati che questa rotta esista nel backend come l'hai definita
+        // Nota: usa "affidaLotti" come definito nelle tue rotte backend
+        const response = await api.get(`/affidaLotti/user/${store.user._id}/associazioni-visibili`)
+        userAssociazioni.value = Array.isArray(response) ? response : (response.data || [])
+        console.log("✅ Associazioni visibili per il cittadino:", userAssociazioni.value)
+      } catch (err) {
+        console.error('Errore caricamento associazioni utente:', err)
+        userAssociazioni.value = []
+      }
     }
     
     // Build query parameters based on filters
@@ -109,9 +128,11 @@ export default {
       try {
         const data = await api.get('/avvisi')
         const cats = new Set()
-        data.forEach(avviso => {
-          if (avviso.categoria) cats.add(avviso.categoria)
-        })
+        if (Array.isArray(data)) {
+            data.forEach(avviso => {
+            if (avviso.categoria) cats.add(avviso.categoria)
+            })
+        }
         categorie.value = Array.from(cats).sort()
       } catch (err) {
         console.error('Errore caricamento categorie:', err)
@@ -155,10 +176,37 @@ export default {
       }
     }
     
-    // Filtra avvisi in base ai criteri (client-side text search only)
+    // --- FILTRAGGIO AVVISI CON LOGICA CITTADINO ---
     const avvisiFiltrati = computed(() => {
       let filtered = avvisi.value
       
+      // LOGICA SPECIALE PER CITTADINI
+      if (store.user?.tipo === 'citt') {
+        const myAssocIds = userAssociazioni.value
+        
+        filtered = filtered.filter(avviso => {
+          // 1. Avvisi del Comune (comu): Sempre visibili
+          if (avviso.tipo === 'comu') {
+             // Opzionale: se il backend gestisce 'destinatario', puoi filtrare qui
+             // if (avviso.destinatario === 'associazioni') return false
+             return true
+          }
+          
+          // 2. Avvisi delle Associazioni (asso): 
+          // Visibili SOLO se l'ID dell'associazione è nella lista delle associazioni dell'utente
+          if (avviso.tipo === 'asso') {
+            const avvisoAssocId = typeof avviso.associazione === 'object' 
+              ? (avviso.associazione._id || avviso.associazione.id) 
+              : avviso.associazione
+            
+            // Verifica se l'ID è presente nell'array caricato
+            return myAssocIds.includes(String(avvisoAssocId))
+          }
+          
+          return false
+        })
+      }
+
       // Filtro per testo di ricerca (client-side)
       if (searchText.value) {
         const search = searchText.value.toLowerCase()
@@ -201,9 +249,8 @@ export default {
       }
     }
     
-    // Marca come non letto (note: API doesn't support unread, so we just update locally)
+    // Marca come non letto
     const segnaComeDaLeggere = (avvisoId) => {
-      // Update local state only (backend doesn't have unread endpoint)
       avvisiLetti.value[avvisoId] = {
         letto: false,
         dataLettura: null
@@ -277,7 +324,9 @@ export default {
       emit('add')
     }
     
-    onMounted(() => {
+    onMounted(async () => {
+      // Carichiamo prima le associazioni per avere i dati pronti per il filtro
+      await loadUserAssociazioni()
       loadCategorie()
       loadAvvisi()
     })
@@ -316,7 +365,8 @@ export default {
       handleDelete,
       handleAdd,
       toast,
-      store
+      store,
+      userAssociazioni // Esposto per eventuale debug
     }
   }
 }
@@ -324,13 +374,11 @@ export default {
 
 <template>
   <div class="container mx-auto px-4 py-6 max-w-6xl">
-    <!-- Header -->
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-warning mb-2">{{ title }}</h1>
       <p class="text-base-content/70">{{ subtitle }}</p>
     </div>
 
-    <!-- Filtri -->
     <div class="card bg-base-200 shadow-md mb-6">
       <div class="card-body p-4">
         <div class="flex items-center justify-between mb-4">
@@ -344,7 +392,6 @@ export default {
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Ricerca testuale -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">🔍 Cerca</span>
@@ -357,7 +404,6 @@ export default {
             />
           </div>
 
-          <!-- Filtro emittente -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">👥 Emittente</span>
@@ -369,7 +415,6 @@ export default {
             </select>
           </div>
 
-          <!-- Filtro categoria -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">📂 Categoria</span>
@@ -382,7 +427,6 @@ export default {
             </select>
           </div>
 
-          <!-- Filtro data -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">📅 Data</span>
@@ -395,7 +439,6 @@ export default {
             </select>
           </div>
 
-          <!-- Filtro stato lettura -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">✅ Stato</span>
@@ -410,7 +453,6 @@ export default {
       </div>
     </div>
 
-    <!-- Pulsante Aggiungi Avviso -->
     <div v-if="showAddButton" class="flex justify-end mb-4">
       <button 
         @click="handleAdd" 
@@ -423,12 +465,10 @@ export default {
       </button>
     </div>
 
-    <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
       <span class="loading loading-spinner loading-lg text-warning"></span>
     </div>
 
-    <!-- Errore -->
     <div v-else-if="error" class="alert alert-error shadow-lg">
       <div>
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -439,14 +479,11 @@ export default {
       <button @click="loadAvvisi" class="btn btn-sm">Riprova</button>
     </div>
 
-    <!-- Lista avvisi -->
     <div v-else>
-      <!-- Conteggio risultati -->
       <div class="mb-4 text-sm text-base-content/70">
         {{ avvisiFiltrati.length }} avviso{{ avvisiFiltrati.length !== 1 ? 'i' : '' }} trovato{{ avvisiFiltrati.length !== 1 ? 'i' : '' }}
       </div>
 
-      <!-- Nessun avviso -->
       <div v-if="avvisiFiltrati.length === 0" class="alert alert-info shadow-lg">
         <div>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6">
@@ -456,7 +493,6 @@ export default {
         </div>
       </div>
 
-      <!-- Card avvisi -->
       <div v-else class="space-y-4">
         <div 
           v-for="avviso in avvisiFiltrati" 
@@ -465,7 +501,6 @@ export default {
           :class="{ 'border-l-4 border-l-warning': !isLetto(avviso._id) }"
         >
           <div class="card-body">
-            <!-- Header della card -->
             <div class="flex items-start justify-between gap-4 mb-3">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
@@ -484,7 +519,6 @@ export default {
                 </h2>
               </div>
               
-              <!-- Pulsante menu azioni -->
               <div class="dropdown dropdown-end">
                 <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-5 h-5 stroke-current">
@@ -492,7 +526,6 @@ export default {
                   </svg>
                 </label>
                 <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52">
-                  <!-- Azioni di lettura -->
                   <li v-if="!isLetto(avviso._id)">
                     <a @click="segnaComeLetto(avviso._id)">
                       ✅ Segna come letto
@@ -504,7 +537,6 @@ export default {
                     </a>
                   </li>
                   
-                  <!-- Azioni di gestione (solo se canEdit è true) -->
                   <template v-if="canEdit">
                     <li><hr class="my-1" /></li>
                     <li>
@@ -522,7 +554,6 @@ export default {
               </div>
             </div>
 
-            <!-- Data -->
             <div class="flex items-center gap-2 text-sm text-base-content/60 mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -530,7 +561,6 @@ export default {
               <span>{{ avviso.dataFormatted }}</span>
             </div>
 
-            <!-- Messaggio -->
             <p class="text-base-content/80 whitespace-pre-wrap">
               {{ avviso.messaggio }}
             </p>
@@ -538,7 +568,6 @@ export default {
         </div>
       </div>
       
-      <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex justify-center mt-6">
         <div class="join">
           <button 
@@ -549,7 +578,6 @@ export default {
             «
           </button>
           
-          <!-- First page -->
           <button 
             v-if="currentPage > 2"
             class="join-item btn btn-sm" 
@@ -558,7 +586,6 @@ export default {
             1
           </button>
           
-          <!-- Ellipsis before -->
           <button 
             v-if="currentPage > 3"
             class="join-item btn btn-sm btn-disabled"
@@ -566,7 +593,6 @@ export default {
             ...
           </button>
           
-          <!-- Previous page -->
           <button 
             v-if="currentPage > 1"
             class="join-item btn btn-sm" 
@@ -575,12 +601,10 @@ export default {
             {{ currentPage - 1 }}
           </button>
           
-          <!-- Current page -->
           <button class="join-item btn btn-sm btn-active">
             {{ currentPage }}
           </button>
           
-          <!-- Next page -->
           <button 
             v-if="currentPage < totalPages"
             class="join-item btn btn-sm" 
@@ -589,7 +613,6 @@ export default {
             {{ currentPage + 1 }}
           </button>
           
-          <!-- Ellipsis after -->
           <button 
             v-if="currentPage < totalPages - 2"
             class="join-item btn btn-sm btn-disabled"
@@ -597,7 +620,6 @@ export default {
             ...
           </button>
           
-          <!-- Last page -->
           <button 
             v-if="currentPage < totalPages - 1"
             class="join-item btn btn-sm" 
@@ -617,7 +639,6 @@ export default {
       </div>
     </div>
     
-    <!-- Toast -->
     <div v-if="toast.show" class="toast toast-end z-[9999]">
       <div class="alert" :class="toast.type === 'error' ? 'alert-error' : 'alert-success'">
         <span class="text-white">{{ toast.message }}</span>
