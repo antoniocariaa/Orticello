@@ -62,14 +62,65 @@ export default {
       // Eseguiamo solo se c'è un utente loggato ed è un cittadino
       if (!store.user || !store.user._id || store.user.tipo !== 'citt') return
       
+      // Per un cittadino, ricaviamo l'associazione direttamente dall'utente
+      // attraverso il lotto assegnato
       try {
-        // Nota: Assicurati che questa rotta esista nel backend come l'hai definita
-        // Nota: usa "affidaLotti" come definito nelle tue rotte backend
-        const response = await api.get(`/affidaLotti/user/${store.user._id}/associazioni-visibili`)
-        userAssociazioni.value = Array.isArray(response) ? response : (response.data || [])
-        console.log("✅ Associazioni visibili per il cittadino:", userAssociazioni.value)
+        // Ottieni tutti gli affidamenti del cittadino
+        const affidamentiResponse = await api.get('/affidaLotti')
+        const allAffidamenti = Array.isArray(affidamentiResponse) ? affidamentiResponse : (affidamentiResponse.data || [])
+        
+        // Trova gli affidamenti accettati per questo utente
+        const myAffidamenti = allAffidamenti.filter(a => {
+          if (!a.utente || a.stato !== 'accepted') return false
+          const userId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
+          return String(userId) === String(store.user._id)
+        })
+        
+        if (myAffidamenti.length > 0) {
+          // Per ogni affidamento, recupera l'orto per trovare l'associazione
+          const ortiResponse = await api.get('/affidaOrti')
+          const allOrtiAssignments = Array.isArray(ortiResponse) ? ortiResponse : (ortiResponse.data || [])
+          
+          // Trova le associazioni uniche che gestiscono gli orti dei lotti del cittadino
+          const associazioniSet = new Set()
+          
+          for (const affidamento of myAffidamenti) {
+            const lottoId = typeof affidamento.lotto === 'object' 
+              ? (affidamento.lotto._id || affidamento.lotto.id) 
+              : affidamento.lotto
+            
+            // Trova l'orto che contiene questo lotto
+            const ortiWithLotti = await api.get('/orti')
+            const allOrti = Array.isArray(ortiWithLotti) ? ortiWithLotti : (ortiWithLotti.data || [])
+            
+            const ortoWithMyLotto = allOrti.find(o => 
+              o.lotti?.some(l => {
+                const lId = typeof l === 'object' ? (l._id || l.id) : l
+                return String(lId) === String(lottoId)
+              })
+            )
+            
+            if (ortoWithMyLotto) {
+              // Trova l'assegnazione dell'orto all'associazione
+              const ortoAssignment = allOrtiAssignments.find(oa => {
+                const ortoId = typeof oa.orto === 'object' ? (oa.orto._id || oa.orto.id) : oa.orto
+                return String(ortoId) === String(ortoWithMyLotto._id || ortoWithMyLotto.id)
+              })
+              
+              if (ortoAssignment && ortoAssignment.associazione) {
+                const assocId = typeof ortoAssignment.associazione === 'object' 
+                  ? (ortoAssignment.associazione._id || ortoAssignment.associazione.id)
+                  : ortoAssignment.associazione
+                associazioniSet.add(assocId)
+              }
+            }
+          }
+          
+          userAssociazioni.value = Array.from(associazioniSet)
+          console.log("✅ Associazioni trovate per il cittadino:", userAssociazioni.value)
+        }
       } catch (err) {
-        console.error('Errore caricamento associazioni utente:', err)
+        console.warn('Errore nel recupero associazioni:', err.message)
         userAssociazioni.value = []
       }
     }
