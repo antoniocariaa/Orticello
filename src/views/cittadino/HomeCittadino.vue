@@ -29,6 +29,8 @@ const fetchData = async () => {
         
         // Find active assignment for me
         const myAffido = allAffidi.find(a => {
+            if (!a.utente) return false
+            
             const uId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
             return String(uId) === String(userId) && a.stato === 'accepted'
         })

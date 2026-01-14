@@ -119,6 +119,8 @@ const hasRequested = (lottoId) => {
     if (!userId) return false
 
     return allAffidamenti.value.some(a => {
+        if (!a.utente || !a.lotto) return false
+        
         const assignedLottoId = typeof a.lotto === 'object' ? (a.lotto._id || a.lotto.id) : a.lotto
         const assignedUserId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
         
@@ -130,6 +132,8 @@ const hasRequested = (lottoId) => {
 const isLottoOccupied = (lottoId) => {
     const id = typeof lottoId === 'object' ? (lottoId._id || lottoId.id) : lottoId
     return allAffidamenti.value.some(a => {
+        if (!a.lotto) return false
+        
         const assignedLottoId = typeof a.lotto === 'object' ? (a.lotto._id || a.lotto.id) : a.lotto
         // It is occupied if status is accepted
         // Note: The model has enum ["pending", "accepted", "rejected"]
@@ -159,6 +163,58 @@ const myAssociazioneId = computed(() => {
     // For citizen, check if they belong to an association
     return user?.associazione || user?.id || user?._id
 })
+
+const userHasActiveLotto = computed(() => {
+    const userId = store.user?._id || store.user?.id
+    if (!userId) return false
+
+    return allAffidamenti.value.some(a => {
+        if (!a.utente) return false
+        
+        const assignedUserId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
+        return String(assignedUserId) === String(userId) && a.stato === 'accepted'
+    })
+})
+
+// Trova l'affidamento attivo del cittadino
+const myActiveLottoAssignment = computed(() => {
+    const userId = store.user?._id || store.user?.id
+    if (!userId) return null
+
+    return allAffidamenti.value.find(a => {
+        if (!a.utente) return false
+        const assignedUserId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
+        return String(assignedUserId) === String(userId) && a.stato === 'accepted'
+    })
+})
+
+// Verifica se un orto contiene il lotto del cittadino
+const isMyOrto = (orto) => {
+    if (!myActiveLottoAssignment.value) return false
+    
+    const myLottoId = typeof myActiveLottoAssignment.value.lotto === 'object' 
+        ? (myActiveLottoAssignment.value.lotto._id || myActiveLottoAssignment.value.lotto.id)
+        : myActiveLottoAssignment.value.lotto
+    
+    return orto.lotti?.some(lotto => {
+        const lottoId = typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto
+        return String(lottoId) === String(myLottoId)
+    })
+}
+
+// Ottieni solo il lotto del cittadino da un orto
+const getMyLottoFromOrto = (orto) => {
+    if (!myActiveLottoAssignment.value) return null
+    
+    const myLottoId = typeof myActiveLottoAssignment.value.lotto === 'object' 
+        ? (myActiveLottoAssignment.value.lotto._id || myActiveLottoAssignment.value.lotto.id)
+        : myActiveLottoAssignment.value.lotto
+    
+    return orto.lotti?.find(lotto => {
+        const lottoId = typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto
+        return String(lottoId) === String(myLottoId)
+    })
+}
 
 const getStatus = (ortoId) => {
     const assignment = getAssignment(ortoId)
@@ -242,6 +298,8 @@ const checkAndRequest = (lotto, orto) => {
     if (!userId) return
 
     const hasActiveAssignment = allAffidamenti.value.some(a => {
+        if (!a.utente) return false
+        
         const assignedUserId = typeof a.utente === 'object' ? (a.utente._id || a.utente.id) : a.utente
         // Check if it's me AND it's accepted
         return String(assignedUserId) === String(userId) && a.stato === 'accepted'
@@ -271,6 +329,9 @@ const checkAndRequest = (lotto, orto) => {
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
                         <div class="flex items-center gap-1">
                             <span class="w-3 h-3 rounded-full bg-green-500"></span> Disponibile
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span> Il tuo Orto
                         </div>
                         <div class="flex items-center gap-1" v-if="myAssociazioneId">
                             <span class="w-3 h-3 rounded-full bg-red-500"></span> Occupato
@@ -308,12 +369,12 @@ const checkAndRequest = (lotto, orto) => {
             ></l-tile-layer>
 
             <l-marker 
-                v-for="orto in filteredOrti" 
-                :key="orto._id || orto.id" 
-                :lat-lng="[orto.coordinate.lat, orto.coordinate.lng]"
+                v-for="orto in filteredOrti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
+                :key="orto._id || orto.id"
+                :lat-lng="[orto.geometry.coordinates[1], orto.geometry.coordinates[0]]"
             >
                 <l-icon 
-                    :icon-url="getStatus(orto._id || orto.id) === 'mine' ? blueIcon.options.iconUrl : greenIcon.options.iconUrl"
+                    :icon-url="isMyOrto(orto) ? blueIcon.options.iconUrl : (getStatus(orto._id || orto.id) === 'mine' ? blueIcon.options.iconUrl : greenIcon.options.iconUrl)"
                     :shadow-url="greenIcon.options.shadowUrl"
                     :icon-size="greenIcon.options.iconSize"
                     :icon-anchor="greenIcon.options.iconAnchor"
@@ -331,39 +392,61 @@ const checkAndRequest = (lotto, orto) => {
                         </p>
 
                         <div v-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white mb-2">La tua Associazione</div>
+                        <div v-else-if="isMyOrto(orto)" class="badge badge-info text-white mb-2">Il tuo Orto</div>
                         <div v-else class="badge badge-success text-white mb-2">Disponibile</div>
                         
-                        <div class="alert alert-sm bg-base-200 p-2 mt-1 mb-2">
-                             <span class="text-xs">Gestito da:</span>
-                             <div class="font-semibold text-sm">
-                                 {{ getAssociazioneName(getAssignment(orto._id || orto.id)) }}
-                             </div>
+                        <div class="flex gap-2 items-stretch mt-1 mb-2">
+                            <div class="alert alert-sm bg-base-200 p-2 flex-1 flex items-center gap-1">
+                                 <span class="text-xs">Gestito da:</span>
+                                 <span class="font-semibold text-sm">{{ getAssociazioneName(getAssignment(orto._id || orto.id)) }}</span>
+                            </div>
+                            <div v-if="userHasActiveLotto" class="tooltip tooltip-left" data-tip="Possiedi già un lotto assegnato e non puoi effettuare altre richieste">
+                                <div class="alert alert-sm bg-base-200 p-2 h-full flex items-center justify-center cursor-help min-w-[2.5rem]">
+                                    <span class="text-warning text-lg">ℹ️</span>
+                                </div>
+                            </div>
                         </div>
                         
-                        <!-- Lotti Details -->
-                        <div class="divider my-1">Lotti</div>
-                        <div class="max-h-[200px] overflow-y-auto space-y-2">
-                            <div v-if="!orto.lotti || orto.lotti.length === 0" class="text-xs italic opacity-50">Nessun lotto</div>
-                            <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-base-100 p-2 rounded text-xs border border-base-200 shadow-sm">
+                        <!-- Lotti Details (solo se l'utente NON ha già un lotto) -->
+                        <div v-if="!userHasActiveLotto">
+                            <div class="divider my-1">Lotti</div>
+                            <div class="max-h-[200px] overflow-y-auto space-y-2">
+                                <div v-if="!orto.lotti || orto.lotti.length === 0" class="text-xs italic opacity-50">Nessun lotto</div>
+                                <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-base-100 p-2 rounded text-xs border border-base-200 shadow-sm">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <div class="font-bold">Lotto #{{ idx + 1 }}</div>
+                                        <div class="badge badge-neutral badge-xs">{{ getLottoData(lotto).dimensione }} mq</div>
+                                    </div>
+                                    <div class="mb-2 flex justify-between items-center">
+                                        <span>Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</span>
+                                        <span v-if="isLottoOccupied(lotto)" class="badge badge-error badge-xs">Occupato</span>
+                                    </div>
+                                    <button 
+                                        v-if="!isLottoOccupied(lotto)"
+                                        @click="checkAndRequest(lotto, orto)"
+                                        class="btn btn-xs w-full"
+                                        :class="hasRequested(lotto) ? 'btn-neutral opacity-50' : 'btn-primary'"
+                                    >
+                                        Richiedi
+                                    </button>
+                                    <button v-else class="btn btn-xs btn-disabled w-full opacity-50">
+                                        Non Disponibile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Se è il suo orto, mostra solo il suo lotto -->
+                        <div v-else-if="isMyOrto(orto)">
+                            <div class="divider my-1">Il tuo Lotto</div>
+                            <div class="bg-blue-50 p-2 rounded text-xs border border-blue-200 shadow-sm">
                                 <div class="flex justify-between items-start mb-1">
-                                    <div class="font-bold">Lotto #{{ idx + 1 }}</div>
-                                    <div class="badge badge-neutral badge-xs">{{ getLottoData(lotto).dimensione }} mq</div>
+                                    <div class="font-bold text-blue-800">Il tuo Lotto</div>
+                                    <div class="badge badge-info badge-xs">{{ getLottoData(getMyLottoFromOrto(orto)).dimensione }} mq</div>
                                 </div>
-                                <div class="mb-2 flex justify-between items-center">
-                                    <span>Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</span>
-                                    <span v-if="isLottoOccupied(lotto)" class="badge badge-error badge-xs">Occupato</span>
+                                <div class="mb-2 flex justify-between items-center text-blue-800">
+                                    <span>Sensori: {{ getLottoData(getMyLottoFromOrto(orto)).sensori ? '✅' : '❌' }}</span>
+                                    <span class="badge badge-success badge-xs">Assegnato</span>
                                 </div>
-                                <button 
-                                    v-if="!isLottoOccupied(lotto)"
-                                    @click="checkAndRequest(lotto, orto)"
-                                    class="btn btn-xs w-full"
-                                    :class="hasRequested(lotto) ? 'btn-neutral opacity-50' : 'btn-primary'"
-                                >
-                                    Richiedi
-                                </button>
-                                <button v-else class="btn btn-xs btn-disabled w-full opacity-50">
-                                    Non Disponibile
-                                </button>
                             </div>
                         </div>
 
@@ -404,7 +487,13 @@ const checkAndRequest = (lotto, orto) => {
 
                 <!-- Size Info & Details Button -->
                 <div class="mb-4 flex-grow">
-                     <div class="flex flex-col gap-2">
+                     <div v-if="userHasActiveLotto" class="flex items-center justify-center gap-2 p-3 bg-base-200 rounded-lg">
+                         <div class="tooltip" data-tip="Possiedi già un lotto assegnato e non puoi effettuare altre richieste">
+                             <span class="text-warning text-2xl cursor-help">ℹ️</span>
+                         </div>
+                         <span class="text-xs opacity-70 text-center">Lotti non disponibili</span>
+                     </div>
+                     <div v-else class="flex flex-col gap-2">
                          <div class="flex justify-between items-center text-sm font-medium">
                              <span>Dimensione Totale:</span>
                              <span class="badge badge-neutral">{{ getTotalSize(orto) }} mq</span>
@@ -413,11 +502,11 @@ const checkAndRequest = (lotto, orto) => {
                              <span>Lotti:</span>
                              <span>{{ orto.lotti?.length || 0 }}</span>
                          </div>
-                     </div>
                      
-                     <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4">
-                         🔍 Visualizza e Richiedi
-                     </button>
+                         <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4">
+                             🔍 Dettagli Lotti
+                         </button>
+                     </div>
                 </div>
             </div>
           </div>

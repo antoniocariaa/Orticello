@@ -205,9 +205,9 @@ const viewMode = ref('map') // 'map' or 'list'
             ></l-tile-layer>
 
             <l-marker 
-                v-for="orto in orti" 
+                v-for="orto in orti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
                 :key="orto._id || orto.id" 
-                :lat-lng="[orto.coordinate.lat, orto.coordinate.lng]"
+                :lat-lng="[orto.geometry.coordinates[1], orto.geometry.coordinates[0]]"
             >
                 <l-icon 
                     :icon-url="getStatus(orto._id || orto.id) === 'available' ? greenIcon.options.iconUrl : (getStatus(orto._id || orto.id) === 'mine' ? blueIcon.options.iconUrl : redIcon.options.iconUrl)"
