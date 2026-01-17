@@ -1,14 +1,31 @@
 <!DOCTYPE html>
-<html data-theme="garden" lang="">
+<html data-theme="garden" lang="it">
 
 <head>
   <meta charset="UTF-8">
   <link rel="shortcut icon" type="image/png" href="/favicon.png"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Viewport ottimizzato per iOS PWA -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#f2f3f4">
   <meta name="description" content="Gestione orti urbani">
+  
+  <!-- iOS Specific Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#f2f3f4">
+  <meta name="apple-mobile-web-app-title" content="Orticello">
+  
+  <!-- Manifest -->
   <link rel="manifest" href="/manifest.json">
+  
+  <!-- Icons -->
   <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/favicon.png">
+  
   <title>Orticello</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>

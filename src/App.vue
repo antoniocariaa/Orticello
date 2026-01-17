@@ -4,6 +4,7 @@ import { RouterView, useRouter } from 'vue-router'
 import { store } from './store'
 import api from './services/api'
 import NavBar from './components/NavBar.vue'
+import OfflineIndicator from './components/OfflineIndicator.vue'
 
 const router = useRouter()
 
@@ -46,6 +47,9 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-base-200 font-sans overflow-x-hidden">
+    <!-- Indicatore stato offline/online -->
+    <OfflineIndicator />
+    
     <NavBar />
 
      <div class="w-full px-4 flex justify-center items-start pt-10 pb-10" :class="{ 'pb-28 md:pb-10': isCittadino }">

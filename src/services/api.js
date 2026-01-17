@@ -17,25 +17,38 @@ async function request(endpoint, options = {}) {
         headers,
     };
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+    try {
+        const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
-    // Handle 401 Unauthorized globally if needed (e.g., auto-logout)
-    if (response.status === 401) {
-        // Optional: Clear token and redirect to login
-        // localStorage.removeItem('token');
-        // localStorage.removeItem('user');
-        // window.location.href = '/login';
-    }
+        // Handle 401 Unauthorized globally if needed (e.g., auto-logout)
+        if (response.status === 401) {
+            // Optional: Clear token and redirect to login
+            // localStorage.removeItem('token');
+            // localStorage.removeItem('user');
+            // window.location.href = '/login';
+        }
 
-    const data = await response.json().catch(() => ({}));
+        const data = await response.json().catch(() => ({}));
 
-    if (!response.ok) {
-        const error = new Error(data.message || response.statusText || 'Errore nella richiesta');
-        error.status = response.status;
+        if (!response.ok) {
+            const error = new Error(data.message || response.statusText || 'Errore nella richiesta');
+            error.status = response.status;
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        // Se l'errore è di rete (offline), propaga con informazioni aggiuntive
+        if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+            const offlineError = new Error('Connessione non disponibile. L\'operazione verrà completata quando tornerai online.');
+            offlineError.isOffline = true;
+            offlineError.originalError = error;
+            throw offlineError;
+        }
+        
+        // Altri errori
         throw error;
     }
-
-    return data;
 }
 
 export default {
