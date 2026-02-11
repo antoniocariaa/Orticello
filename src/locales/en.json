@@ -24,7 +24,22 @@
     "requests_short": "Requests",
     "dash_short": "Dash",
     "assoc_short": "Assoc",
-    "map_short": "Map"
+    "map_short": "Map",
+    "save": "Save Changes",
+    "delete_account": "Delete Account",
+    "delete_account_confirm": "Are you sure you want to delete your account? This action is irreversible.",
+    "user_info": "User Information",
+    "cancel": "Cancel",
+    "address": "Address",
+    "change_password": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "passwords_not_match": "Passwords do not match",
+    "password_updated": "Password updated successfully",
+    "confirm_deletion_phrase": "I confirm deletion",
+    "type_to_confirm": "Type '{phrase}' to confirm",
+    "confirm": "Confirm"
   },
   "errors": {
     "retrieving_ortos": "Error retrieving gardens",
