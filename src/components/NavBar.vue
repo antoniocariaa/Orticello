@@ -1,9 +1,11 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { store } from '../store'
 
 const router = useRouter()
 const route = useRoute()
+const { t, locale } = useI18n()
 
 const logout = () => {
   localStorage.removeItem('token')
@@ -11,13 +13,17 @@ const logout = () => {
   store.clearUser()
   router.push('/login')
 }
+
+const changeLanguage = (lang) => {
+  locale.value = lang
+}
 </script>
 
 <template>
   <!-- Navbar Desktop - Solo desktop -->
   <div v-if="!route.meta.hideNavbar" class="navbar bg-base-100 shadow-sm w-full hidden md:flex">
     <div class="flex-none">
-      <router-link to="/" class="btn btn-ghost text-xl text-primary font-bold">Orticello</router-link>
+      <router-link to="/" class="btn btn-ghost text-xl text-primary font-bold">{{ $t('general.brand') }}</router-link>
     </div>
 
     <!--Desktop Menu -->
@@ -26,22 +32,22 @@ const logout = () => {
       <ul v-if="store.user?.tipo === 'citt'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
           <router-link to="/cittadino/orto" active-class="active" class="font-medium">
-            🌿 Il tuo Orto
+            {{ $t('nav.your_garden') }}
           </router-link>
         </li>
         <li>
           <router-link to="/cittadino/cerca" active-class="active" class="font-medium">
-            🔍 Cerca Orto
+            {{ $t('nav.search_garden') }}
           </router-link>
         </li>
         <li>
-          <button disabled class="font-medium opacity-50 cursor-not-allowed" title="Info orto (in arrivo)">
-            ℹ️ Info Orto
+          <button disabled class="font-medium opacity-50 cursor-not-allowed" :title="$t('nav.info_garden_tooltip')">
+             {{ $t('nav.info_garden') }}
           </button>
         </li>
         <li>
           <router-link to="/cittadino/avvisi" active-class="active" class="font-medium">
-            🔔 Avvisi
+             {{ $t('nav.notices') }}
           </router-link>
         </li>
       </ul>
@@ -49,27 +55,27 @@ const logout = () => {
       <ul v-if="store.user?.tipo === 'comu'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
           <router-link to="/comune/dashboard" active-class="active" class="font-medium">
-            📊 Dashboard
+             {{ $t('nav.dashboard') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/associazioni" active-class="active" class="font-medium">
-            🤝 Associazioni
+             {{ $t('nav.associations') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/mappa" active-class="active" class="font-medium">
-            🗺️ Mappa
+             {{ $t('nav.map') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/avvisi" active-class="active" class="font-medium">
-            📢 Avvisi
+             {{ $t('nav.comune_notices') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/bandi" active-class="active" class="font-medium">
-            📜 Bandi
+             {{ $t('nav.tenders') }}
           </router-link>
         </li>
       </ul>
@@ -78,36 +84,53 @@ const logout = () => {
       <ul v-if="store.user?.tipo === 'asso'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
           <router-link to="/associazione/dashboard" active-class="active" class="font-medium">
-            📊 Dashboard
+             {{ $t('nav.dashboard') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/orti" active-class="active" class="font-medium">
-            🌿 Orti
+             {{ $t('nav.gardens') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/avvisi" active-class="active" class="font-medium">
-            🔔 Avvisi
+             {{ $t('nav.notices') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/bandi" active-class="active" class="font-medium">
-            📜 Bandi
+             {{ $t('nav.tenders') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/richieste" active-class="active" class="font-medium">
-            📨 Richieste
+             {{ $t('nav.requests') }}
           </router-link>
         </li>
       </ul>
     </div>
 
-    <!--Logout-->
+    <!--Profile & Language Dropdown-->
     <div class="flex-none gap-4">
-      <div v-if="store.isAuthenticated" class="flex items-center gap-4">
-        <button @click="logout" class="btn btn-sm btn-error text-white hidden md:inline-flex">Logout</button>
+      <div v-if="store.isAuthenticated" class="dropdown dropdown-end hidden md:inline-flex">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+          <div class="bg-neutral text-neutral-content rounded-full w-10">
+            <span class="text-xl">{{ store.user?.nome ? store.user.nome.charAt(0).toUpperCase() : 'U' }}</span>
+          </div>
+        </div>
+        <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+          <li>
+            <details open>
+              <summary>{{ $t('general.language') }}</summary>
+              <ul>
+                <li><a @click="changeLanguage('it')" :class="{ active: locale === 'it' }">Italiano</a></li>
+                <li><a @click="changeLanguage('en')" :class="{ active: locale === 'en' }">English</a></li>
+                <li><a @click="changeLanguage('de')" :class="{ active: locale === 'de' }">Deutsch</a></li>
+              </ul>
+            </details>
+          </li>
+          <li><a @click="logout" class="text-error">{{ $t('general.logout') }}</a></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -163,22 +186,22 @@ const logout = () => {
     <template v-if="store.user?.tipo === 'comu'">
       <router-link to="/comune/dashboard" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">📊</span>
-        <span class="text-[10px] font-medium leading-none">Dash</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.dash_short') }}</span>
       </router-link>
 
       <router-link to="/comune/associazioni" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">🤝</span>
-        <span class="text-[10px] font-medium leading-none">Assoc</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.assoc_short') }}</span>
       </router-link>
 
       <router-link to="/comune/mappa" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">🗺️</span>
-        <span class="text-[10px] font-medium leading-none">Mappa</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.map_short') }}</span>
       </router-link>
 
       <router-link to="/comune/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">📜</span>
-        <span class="text-[10px] font-medium leading-none">Bandi</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
       </router-link>
     </template>
 
@@ -186,29 +209,29 @@ const logout = () => {
     <template v-if="store.user?.tipo === 'asso'">
       <router-link to="/associazione/dashboard" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">📊</span>
-        <span class="text-[10px] font-medium leading-none">Dash</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.dash_short') }}</span>
       </router-link>
 
       <router-link to="/associazione/orti" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">🌿</span>
-        <span class="text-[10px] font-medium leading-none">Orti</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.gardens_short') }}</span>
       </router-link>
 
       <router-link to="/associazione/richieste" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">📨</span>
-        <span class="text-[10px] font-medium leading-none">Richieste</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.requests_short') }}</span>
       </router-link>
 
       <router-link to="/associazione/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">📜</span>
-        <span class="text-[10px] font-medium leading-none">Bandi</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
       </router-link>
     </template>
 
     <!-- Logout Action -->
     <button class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-red-50 text-error transition-colors" @click="logout">
       <span class="text-2xl mb-1">🚪</span>
-      <span class="text-[10px] font-medium leading-none">Exit</span>
+      <span class="text-[10px] font-medium leading-none">{{ $t('general.exit') }}</span>
     </button>
 
   </div>
