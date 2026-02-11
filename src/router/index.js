@@ -34,12 +34,14 @@ const router = createRouter({
         {
             path: '/login',
             name: 'login',
-            component: LoginView
+            component: LoginView,
+            meta: { hideNavbar: true }
         },
         {
             path: '/register',
             name: 'register',
-            component: RegisterView
+            component: RegisterView,
+            meta: { hideNavbar: true }
         },
         // Comune Routes
         {
@@ -64,6 +66,12 @@ const router = createRouter({
             path: '/comune/avvisi',
             name: 'comune-avvisi',
             component: () => import('../views/comune/AvvisiComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/comune/bandi',
+            name: 'comune-bandi',
+            component: () => import('../views/comune/BandiComune.vue'),
             meta: { requiresAuth: true }
         },
         {
@@ -98,6 +106,12 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/associazione/richieste',
+            name: 'associazione-richieste',
+            component: () => import('../views/associazione/RichiesteAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/'
         }
@@ -106,6 +120,28 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token')
+
+    // Redirect logged in users away from auth pages
+    if (token && (to.name === 'login' || to.name === 'register')) {
+        const userStr = localStorage.getItem('user')
+        let role = null
+
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                role = user.tipo
+            } catch (e) {
+                console.error('Failed to parse user data', e)
+            }
+        }
+
+        switch (role) {
+            case 'citt': return next('/cittadino/orto')
+            case 'comu': return next('/comune/dashboard')
+            case 'asso': return next('/associazione/dashboard')
+            default: return next('/')
+        }
+    }
 
     if (to.meta.requiresAuth && !token) {
         next('/login')

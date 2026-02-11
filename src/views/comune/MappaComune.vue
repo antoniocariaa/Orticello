@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted} from 'vue'
 import api from '../../services/api'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
@@ -103,11 +103,15 @@ const openEditModal = async (orto) => {
         const assignment = affidamenti.value.find(a => (a.orto === editingId.value || a.orto?._id === editingId.value))
         
         // Prepare base form data
+        // Extract lat/lng from GeoJSON geometry.coordinates [longitude, latitude]
+        const lng = orto.geometry?.coordinates?.[0] || ''
+        const lat = orto.geometry?.coordinates?.[1] || ''
+        
         form.value = {
             nome: orto.nome,
             indirizzo: orto.indirizzo,
-            lat: orto.coordinate?.lat || '',
-            lng: orto.coordinate?.lng || '',
+            lat: lat,
+            lng: lng,
             lotti: [], // placeholder
             associazione: assignment ? (assignment.associazione?._id || assignment.associazione) : '',
             data_inizio: assignment ? (assignment.data_inizio?.split('T')[0]) : '',
@@ -233,9 +237,9 @@ const saveOrto = async () => {
         const ortoPayload = {
             nome: form.value.nome,
             indirizzo: form.value.indirizzo,
-            coordinate: {
-                lat: parseFloat(form.value.lat),
-                lng: parseFloat(form.value.lng)
+            geometry: {
+                type: 'Point',
+                coordinates: [parseFloat(form.value.lng), parseFloat(form.value.lat)] // GeoJSON format: [longitude, latitude]
             },
             lotti: lottiIds
         }
@@ -339,9 +343,9 @@ const saveOrto = async () => {
             ></l-tile-layer>
 
             <l-marker 
-                v-for="orto in orti" 
-                :key="orto._id || orto.id" 
-                :lat-lng="[orto.coordinate.lat, orto.coordinate.lng]"
+                v-for="orto in orti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
+                :key="orto._id || orto.id"
+                :lat-lng="[orto.geometry.coordinates[1], orto.geometry.coordinates[0]]"
             >
                 <l-icon :icon-url="isAssigned(orto._id || orto.id) ? redIcon.options.iconUrl : greenIcon.options.iconUrl" 
                         :shadow-url="redIcon.options.shadowUrl"

@@ -80,8 +80,13 @@ const register = async () => {
 </script>
 
 <template>
-  <div class="card bg-base-100 shadow-xl w-full max-w-lg mx-auto">
-    <div class="card-body p-6 sm:p-8">
+  <div class="w-full max-w-lg mx-auto">
+    <div class="flex flex-col items-center mb-6">
+      <img src="/favicon.png" alt="Orticello Logo" class="w-20 h-20 mb-1 drop-shadow-lg" />
+      <h1 class="text-3xl font-bold text-primary drop-shadow-md">Orticello</h1>
+    </div>
+    <div class="card bg-base-100 shadow-xl w-full">
+      <div class="card-body p-6 sm:p-8">
       <h2 class="card-title text-2xl font-bold text-center justify-center mb-6 text-primary">Crea un Account</h2>
       
       <div v-if="fromGoogle" role="alert" class="alert alert-info mb-4">
@@ -158,6 +163,7 @@ const register = async () => {
 
       <div class="text-center mt-4">
         <p class="text-sm">Hai già un account? <router-link to="/login" class="link link-primary">Accedi qui</router-link></p>
+      </div>
       </div>
     </div>
   </div>
