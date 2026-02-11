@@ -24,7 +24,22 @@
     "requests_short": "Richieste",
     "dash_short": "Dash",
     "assoc_short": "Assoc",
-    "map_short": "Mappa"
+    "map_short": "Mappa",
+    "save": "Salva Modifiche",
+    "delete_account": "Elimina Account",
+    "delete_account_confirm": "Sei sicuro di voler eliminare il tuo account? Questa azione è irreversibile.",
+    "user_info": "Informazioni Utente",
+    "cancel": "Annulla",
+    "address": "Indirizzo",
+    "change_password": "Cambia Password",
+    "current_password": "Password Attuale",
+    "new_password": "Nuova Password",
+    "confirm_password": "Conferma Password",
+    "passwords_not_match": "Le password non coincidono",
+    "password_updated": "Password aggiornata con successo",
+    "confirm_deletion_phrase": "confermo l'eliminazione",
+    "type_to_confirm": "Digita '{phrase}' per confermare",
+    "confirm": "Conferma"
   },
   "errors": {
     "retrieving_ortos": "Errore nel recupero degli orti",

@@ -24,7 +24,22 @@
     "requests_short": "Anfragen",
     "dash_short": "Dash",
     "assoc_short": "Vereine",
-    "map_short": "Karte"
+    "map_short": "Karte",
+    "save": "Änderungen speichern",
+    "delete_account": "Konto löschen",
+    "delete_account_confirm": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion ist irreversibel.",
+    "user_info": "Benutzerinformationen",
+    "cancel": "Abbrechen",
+    "address": "Adresse",
+    "change_password": "Passwort ändern",
+    "current_password": "Aktuelles Passwort",
+    "new_password": "Neues Passwort",
+    "confirm_password": "Passwort bestätigen",
+    "passwords_not_match": "Passwörter stimmen nicht überein",
+    "password_updated": "Passwort erfolgreich aktualisiert",
+    "confirm_deletion_phrase": "Ich bestätige die Löschung",
+    "type_to_confirm": "Geben Sie '{phrase}' ein, um zu bestätigen",
+    "confirm": "Bestätigen"
   },
   "errors": {
     "retrieving_ortos": "Fehler beim Abrufen der Gärten",

@@ -113,12 +113,17 @@ const changeLanguage = (lang) => {
     <!--Profile & Language Dropdown-->
     <div class="flex-none gap-4">
       <div v-if="store.isAuthenticated" class="dropdown dropdown-end hidden md:inline-flex">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
-          <div class="bg-neutral text-neutral-content rounded-full w-10">
-            <span class="text-xl">{{ store.user?.nome ? store.user.nome.charAt(0).toUpperCase() : 'U' }}</span>
+        <router-link to="/profile">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-full w-10">
+              <span class="text-xl">{{ store.user?.nome ? store.user.nome.charAt(0).toUpperCase() : 'U' }}</span>
+            </div>
           </div>
-        </div>
-        <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+        </router-link>
+        <!-- <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+          <li>
+            {{ $t('general.profile') }}
+          </li>
           <li>
             <details open>
               <summary>{{ $t('general.language') }}</summary>
@@ -129,8 +134,7 @@ const changeLanguage = (lang) => {
               </ul>
             </details>
           </li>
-          <li><a @click="logout" class="text-error">{{ $t('general.logout') }}</a></li>
-        </ul>
+        </ul> -->
       </div>
     </div>
   </div>
@@ -164,11 +168,11 @@ const changeLanguage = (lang) => {
               <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/>
             </svg>
           </router-link>
-          <button type="button" aria-label="Logout" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#95d095] flex items-center justify-center shadow-md hover:bg-[#a5daa5] active:scale-95 transition-all duration-150" @click="logout">
+          <router-link to="/profile" aria-label="Profilo" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#95d095] flex items-center justify-center shadow-md hover:bg-[#a5daa5] active:scale-95 transition-all duration-150">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 fill-white" aria-hidden="true">
               <path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5ZM5 20a7 7 0 0 1 14 0 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"/>
             </svg>
-          </button>
+          </router-link>
         </div>
       </div>
 
