@@ -2,13 +2,23 @@
 import { ref, computed, onMounted } from 'vue'
 import { store } from '@/store'
 import api from '@/services/api'
+import { 
+  Bell, RefreshCw, Search, Users, Folder, Calendar, CheckCircle, 
+  Plus, AlertCircle, Info, MoreVertical, Check, Circle, Pencil, Trash2, 
+  Building2, Sprout 
+} from 'lucide-vue-next'
 
 export default {
   name: 'AvvisiBacheca',
+  components: {
+    Bell, RefreshCw, Search, Users, Folder, Calendar, CheckCircle, 
+    Plus, AlertCircle, Info, MoreVertical, Check, Circle, Pencil, Trash2, 
+    Building2, Sprout
+  },
   props: {
     title: {
       type: String,
-      default: '🔔 Bacheca Avvisi'
+      default: 'Bacheca Avvisi'
     },
     subtitle: {
       type: String,
@@ -21,6 +31,14 @@ export default {
     showAddButton: {
       type: Boolean,
       default: false
+    },
+    icon: {
+      type: Object,
+      default: null
+    },
+    buttonIcon: {
+      type: Object,
+      default: null
     }
   },
   emits: ['edit', 'delete', 'add'],
@@ -117,7 +135,7 @@ export default {
           }
           
           userAssociazioni.value = Array.from(associazioniSet)
-          console.log("✅ Associazioni trovate per il cittadino:", userAssociazioni.value)
+          console.log("Associazioni trovate per il cittadino:", userAssociazioni.value)
         }
       } catch (err) {
         console.warn('Errore nel recupero associazioni:', err.message)
@@ -316,9 +334,9 @@ export default {
     // Ottieni label dell'emittente
     const getEmittenteLabel = (avviso) => {
       if (avviso.tipo === 'comu') {
-        return '🏛️ Comune'
+        return 'Comune'
       } else if (avviso.tipo === 'asso') {
-        return '🌱 Associazione'
+        return 'Associazione'
       }
       return 'N/A'
     }
@@ -426,7 +444,10 @@ export default {
 <template>
   <div class="container mx-auto px-4 py-6 max-w-6xl">
     <div class="mb-6">
-      <h1 class="text-3xl font-bold text-warning mb-2">{{ title }}</h1>
+      <h1 class="text-3xl font-bold text-warning mb-2 flex items-center gap-2">
+        <component :is="icon || 'Bell'" class="w-8 h-8" />
+        {{ title }}
+      </h1>
       <p class="text-base-content/70">{{ subtitle }}</p>
     </div>
 
@@ -436,16 +457,17 @@ export default {
           <h3 class="text-lg font-semibold">Filtri</h3>
           <button 
             @click="resetFiltri" 
-            class="btn btn-sm btn-ghost"
+            class="btn btn-sm btn-ghost gap-2"
           >
-            🔄 Reset
+            <RefreshCw class="w-4 h-4" />
+            Reset
           </button>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text">🔍 Cerca</span>
+              <span class="label-text flex items-center gap-2"><Search class="w-4 h-4" /> Cerca</span>
             </label>
             <input 
               v-model="searchText"
@@ -457,7 +479,7 @@ export default {
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text">👥 Emittente</span>
+              <span class="label-text flex items-center gap-2"><Users class="w-4 h-4" /> Emittente</span>
             </label>
             <select v-model="filterEmittente" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutti</option>
@@ -468,7 +490,7 @@ export default {
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text">📂 Categoria</span>
+              <span class="label-text flex items-center gap-2"><Folder class="w-4 h-4" /> Categoria</span>
             </label>
             <select v-model="filterCategoria" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutte</option>
@@ -480,7 +502,7 @@ export default {
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text">📅 Data</span>
+              <span class="label-text flex items-center gap-2"><Calendar class="w-4 h-4" /> Data</span>
             </label>
             <select v-model="filterData" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutte</option>
@@ -492,7 +514,7 @@ export default {
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text">✅ Stato</span>
+              <span class="label-text flex items-center gap-2"><CheckCircle class="w-4 h-4" /> Stato</span>
             </label>
             <select v-model="filterLetto" @change="reloadOnFilterChange" class="select select-bordered select-sm">
               <option value="all">Tutti</option>
@@ -507,11 +529,9 @@ export default {
     <div v-if="showAddButton" class="flex justify-end mb-4">
       <button 
         @click="handleAdd" 
-        class="btn btn-warning"
+        class="btn btn-warning gap-2"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-        </svg>
+        <component :is="buttonIcon || 'Plus'" class="w-5 h-5" />
         Nuovo Avviso
       </button>
     </div>
@@ -522,9 +542,7 @@ export default {
 
     <div v-else-if="error" class="alert alert-error shadow-lg">
       <div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <AlertCircle class="stroke-current flex-shrink-0 h-6 w-6" />
         <span>{{ error }}</span>
       </div>
       <button @click="loadAvvisi" class="btn btn-sm">Riprova</button>
@@ -537,9 +555,7 @@ export default {
 
       <div v-if="avvisiFiltrati.length === 0" class="alert alert-info shadow-lg">
         <div>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+          <Info class="stroke-current flex-shrink-0 w-6 h-6" />
           <span>Nessun avviso disponibile con i filtri selezionati.</span>
         </div>
       </div>
@@ -555,7 +571,9 @@ export default {
             <div class="flex items-start justify-between gap-4 mb-3">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
-                  <span class="badge badge-sm" :class="avviso.tipo === 'comu' ? 'badge-primary' : 'badge-secondary'">
+                  <span class="badge badge-sm gap-1" :class="avviso.tipo === 'comu' ? 'badge-primary' : 'badge-secondary'">
+                    <Building2 v-if="avviso.tipo === 'comu'" class="w-3 h-3" />
+                    <Sprout v-else class="w-3 h-3" />
                     {{ getEmittenteLabel(avviso) }}
                   </span>
                   <span v-if="avviso.categoria" class="badge badge-sm badge-outline">
@@ -572,32 +590,34 @@ export default {
               
               <div class="dropdown dropdown-end">
                 <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-5 h-5 stroke-current">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                  </svg>
+                  <MoreVertical class="w-5 h-5" />
                 </label>
                 <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52">
                   <li v-if="!isLetto(avviso._id)">
-                    <a @click="segnaComeLetto(avviso._id)">
-                      ✅ Segna come letto
+                    <a @click="segnaComeLetto(avviso._id)" class="flex items-center gap-2">
+                      <Check class="w-4 h-4 text-success" />
+                      Segna come letto
                     </a>
                   </li>
                   <li v-else>
-                    <a @click="segnaComeDaLeggere(avviso._id)">
-                      ⭕ Segna come da leggere
+                    <a @click="segnaComeDaLeggere(avviso._id)" class="flex items-center gap-2">
+                       <Circle class="w-4 h-4 text-warning" />
+                       Segna come da leggere
                     </a>
                   </li>
                   
                   <template v-if="canEdit">
                     <li><hr class="my-1" /></li>
                     <li>
-                      <a @click="handleEdit(avviso)" class="text-info">
-                        ✏️ Modifica
+                      <a @click="handleEdit(avviso)" class="text-info flex items-center gap-2">
+                        <Pencil class="w-4 h-4" />
+                        Modifica
                       </a>
                     </li>
                     <li>
-                      <a @click="handleDelete(avviso)" class="text-error">
-                        🗑️ Elimina
+                      <a @click="handleDelete(avviso)" class="text-error flex items-center gap-2">
+                        <Trash2 class="w-4 h-4" />
+                        Elimina
                       </a>
                     </li>
                   </template>
@@ -606,9 +626,7 @@ export default {
             </div>
 
             <div class="flex items-center gap-2 text-sm text-base-content/60 mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              <Calendar class="h-4 w-4" />
               <span>{{ avviso.dataFormatted }}</span>
             </div>
 

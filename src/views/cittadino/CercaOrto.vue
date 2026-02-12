@@ -5,6 +5,7 @@ import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
+import { Search, Map, List, MapPin, Info, Check, X } from 'lucide-vue-next'
 
 const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Trento
@@ -321,7 +322,9 @@ const checkAndRequest = (lotto, orto) => {
       <!-- Header -->
       <div class="flex justify-between w-full max-w-5xl items-end">
            <div class="flex flex-col gap-3">
-               <h1 class="text-3xl font-bold text-primary">Cerca Orto</h1>
+               <h1 class="text-3xl font-bold text-primary flex items-center gap-2">
+                Cerca Orto <Search class="w-8 h-8" />
+               </h1>
                <p class="text-sm opacity-70">Esplora gli orti disponibili e visualizza i dettagli</p>
                
                <div class="flex flex-wrap gap-4 items-center">
@@ -345,14 +348,14 @@ const checkAndRequest = (lotto, orto) => {
                             :class="viewMode === 'map' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'map'"
                         >
-                            🗺️ Mappa
+                            <Map class="w-4 h-4 mr-1" /> Mappa
                         </button>
                         <button 
                             class="btn btn-sm join-item" 
                             :class="viewMode === 'list' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'list'"
                         >
-                            📋 Lista
+                            <List class="w-4 h-4 mr-1" /> Lista
                         </button>
                     </div>
                </div>
@@ -388,7 +391,7 @@ const checkAndRequest = (lotto, orto) => {
                         <!-- Header -->
                         <h3 class="font-bold text-lg mb-1">{{ orto.nome }}</h3>
                         <p class="text-sm text-gray-600 mb-2 flex items-center gap-1">
-                             📍 {{ orto.indirizzo }}
+                             <MapPin class="w-3 h-3" /> {{ orto.indirizzo }}
                         </p>
 
                         <div v-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white mb-2">La tua Associazione</div>
@@ -402,7 +405,7 @@ const checkAndRequest = (lotto, orto) => {
                             </div>
                             <div v-if="userHasActiveLotto" class="tooltip tooltip-left" data-tip="Possiedi già un lotto assegnato e non puoi effettuare altre richieste">
                                 <div class="alert alert-sm bg-base-200 p-2 h-full flex items-center justify-center cursor-help min-w-[2.5rem]">
-                                    <span class="text-warning text-lg">ℹ️</span>
+                                    <Info class="w-5 h-5 text-warning" />
                                 </div>
                             </div>
                         </div>
@@ -417,8 +420,8 @@ const checkAndRequest = (lotto, orto) => {
                                         <div class="font-bold">Lotto #{{ idx + 1 }}</div>
                                         <div class="badge badge-neutral badge-xs">{{ getLottoData(lotto).dimensione }} mq</div>
                                     </div>
-                                    <div class="mb-2 flex justify-between items-center">
-                                        <span>Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</span>
+                                    <div class="mb-2 flex justify-between items-center bg-base-100 rounded p-1">
+                                        <span class="flex items-center gap-1">Sensori: <Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" /><X v-else class="w-3 h-3 text-error" /></span>
                                         <span v-if="isLottoOccupied(lotto)" class="badge badge-error badge-xs">Occupato</span>
                                     </div>
                                     <button 
@@ -444,7 +447,7 @@ const checkAndRequest = (lotto, orto) => {
                                     <div class="badge badge-info badge-xs">{{ getLottoData(getMyLottoFromOrto(orto)).dimensione }} mq</div>
                                 </div>
                                 <div class="mb-2 flex justify-between items-center text-blue-800">
-                                    <span>Sensori: {{ getLottoData(getMyLottoFromOrto(orto)).sensori ? '✅' : '❌' }}</span>
+                                    <span class="flex items-center gap-1">Sensori: <Check v-if="getLottoData(getMyLottoFromOrto(orto)).sensori" class="w-3 h-3 text-success" /><X v-else class="w-3 h-3 text-error" /></span>
                                     <span class="badge badge-success badge-xs">Assegnato</span>
                                 </div>
                             </div>
@@ -473,7 +476,7 @@ const checkAndRequest = (lotto, orto) => {
 
                 <!-- Address -->
                 <div class="flex items-start gap-2 text-sm text-gray-600 mb-3">
-                    <span class="text-base">📍</span>
+                    <MapPin class="w-4 h-4 mt-0.5" />
                     <span>{{ orto.indirizzo }}</span>
                 </div>
 
@@ -489,7 +492,7 @@ const checkAndRequest = (lotto, orto) => {
                 <div class="mb-4 flex-grow">
                      <div v-if="userHasActiveLotto" class="flex items-center justify-center gap-2 p-3 bg-base-200 rounded-lg">
                          <div class="tooltip" data-tip="Possiedi già un lotto assegnato e non puoi effettuare altre richieste">
-                             <span class="text-warning text-2xl cursor-help">ℹ️</span>
+                             <Info class="w-6 h-6 text-warning cursor-help" />
                          </div>
                          <span class="text-xs opacity-70 text-center">Lotti non disponibili</span>
                      </div>
@@ -503,8 +506,8 @@ const checkAndRequest = (lotto, orto) => {
                              <span>{{ orto.lotti?.length || 0 }}</span>
                          </div>
                      
-                         <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4">
-                             🔍 Dettagli Lotti
+                         <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4 gap-2">
+                             <Search class="w-4 h-4" /> Dettagli Lotti
                          </button>
                      </div>
                 </div>
@@ -539,12 +542,10 @@ const checkAndRequest = (lotto, orto) => {
                             <td>{{ getLottoData(lotto).dimensione }} mq</td>
                             <td>
                                 <span v-if="getLottoData(lotto).sensori" class="text-success flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
+                                    <Check class="w-4 h-4 mr-1" />
                                     Sì
                                 </span>
-                                <span v-else class="text-gray-400">No</span>
+                                <span v-else class="text-gray-400 flex items-center gap-1"><X class="w-4 h-4" /> No</span>
                             </td>
                             <td>
                                 <button

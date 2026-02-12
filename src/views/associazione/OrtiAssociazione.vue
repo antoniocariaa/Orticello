@@ -4,6 +4,7 @@ import api from '../../services/api'
 import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
+import { Map, List, MapPin, Check, X } from 'lucide-vue-next'
 import L from 'leaflet'
 
 const zoom = ref(13)
@@ -181,14 +182,14 @@ const viewMode = ref('map') // 'map' or 'list'
                             :class="viewMode === 'map' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'map'"
                         >
-                            🗺️ Mappa
+                            <Map class="w-4 h-4 mr-1" /> Mappa
                         </button>
                         <button 
                             class="btn btn-sm join-item" 
                             :class="viewMode === 'list' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'list'"
                         >
-                            📋 Lista
+                            <List class="w-4 h-4 mr-1" /> Lista
                         </button>
                     </div>
                </div>
@@ -224,7 +225,7 @@ const viewMode = ref('map') // 'map' or 'list'
                         <!-- Header for all states -->
                         <h3 class="font-bold text-lg mb-1">{{ orto.nome }}</h3>
                         <p class="text-sm text-gray-600 mb-2 flex items-center gap-1">
-                             📍 {{ orto.indirizzo }}
+                             <MapPin class="w-4 h-4" /> {{ orto.indirizzo }}
                         </p>
 
                         <!-- Available -->
@@ -238,7 +239,11 @@ const viewMode = ref('map') // 'map' or 'list'
                                  <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-base-200 p-2 rounded text-xs">
                                      <div class="font-bold">Lotto #{{ idx + 1 }}</div>
                                      <div>Dim: {{ getLottoData(lotto).dimensione }} mq</div>
-                                     <div>Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</div>
+                                     <div class="flex items-center gap-1">
+                                         Sensori: 
+                                         <Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" />
+                                         <X v-else class="w-3 h-3 text-error" />
+                                     </div>
                                  </div>
                              </div>
                         </div>
@@ -253,7 +258,11 @@ const viewMode = ref('map') // 'map' or 'list'
                                  <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-blue-50 p-2 rounded text-xs border border-blue-100">
                                      <div class="font-bold text-blue-800">Lotto #{{ idx + 1 }}</div>
                                      <div>Dim: {{ getLottoData(lotto).dimensione }} mq</div>
-                                     <div>Sensori: {{ getLottoData(lotto).sensori ? '✅' : '❌' }}</div>
+                                     <div class="flex items-center gap-1">
+                                         Sensori: 
+                                         <Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" />
+                                         <X v-else class="w-3 h-3 text-error" />
+                                     </div>
                                  </div>
                              </div>
                         </div>
@@ -298,7 +307,7 @@ const viewMode = ref('map') // 'map' or 'list'
 
                 <!-- Address -->
                 <div class="flex items-start gap-2 text-sm text-gray-600 mb-3">
-                    <span class="text-base">📍</span>
+                    <MapPin class="w-4 h-4 mt-1" />
                     <span>{{ orto.indirizzo }}</span>
                 </div>
 
@@ -323,8 +332,8 @@ const viewMode = ref('map') // 'map' or 'list'
                          </div>
                      </div>
                      
-                     <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4">
-                         🔍 Dettagli Lotti
+                     <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4 flex items-center justify-center gap-2">
+                         <Search class="w-4 h-4" /> Dettagli Lotti
                      </button>
                 </div>
 

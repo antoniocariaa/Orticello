@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted} from 'vue'
 import api from '../../services/api'
+import { Plus, Mail, Phone, FileText, MapPin, Sprout, Handshake } from 'lucide-vue-next'
 
 const associazioni = ref([])
 const affidamenti = ref([])
@@ -116,11 +117,13 @@ const showToast = (message, type = 'success') => {
     
     <div class="w-full max-w-6xl flex justify-between items-end">
         <div>
-            <h1 class="text-3xl font-bold text-primary mb-2">🤝 Associazioni</h1>
+            <h1 class="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
+                <Handshake class="w-8 h-8" /> Associazioni
+            </h1>
             <p class="text-gray-600">Elenco delle associazioni registrate e dei loro orti gestiti.</p>
         </div>
         <button @click="openAddModal" class="btn btn-primary gap-2">
-            <span class="text-xl">+</span> Aggiungi Associazione
+            <Plus class="w-5 h-5" /> Aggiungi Associazione
         </button>
     </div>
 
@@ -158,13 +161,13 @@ const showToast = (message, type = 'success') => {
                 
                 <div class="text-sm text-gray-600 space-y-1 mt-2">
                     <div v-if="assoc.email" class="flex items-center gap-2">
-                        <span class="opacity-70">📧</span> {{ assoc.email }}
+                        <Mail class="w-4 h-4 opacity-70" /> {{ assoc.email }}
                     </div>
                     <div v-if="assoc.telefono" class="flex items-center gap-2">
-                        <span class="opacity-70">📞</span> {{ assoc.telefono }}
+                        <Phone class="w-4 h-4 opacity-70" /> {{ assoc.telefono }}
                     </div>
                     <div v-if="assoc.codicefiscale" class="flex items-center gap-2">
-                        <span class="opacity-70">🆔</span> {{ assoc.codicefiscale }}
+                        <FileText class="w-4 h-4 opacity-70" /> {{ assoc.codicefiscale }}
                     </div>
                 </div>
 
@@ -201,7 +204,7 @@ const showToast = (message, type = 'success') => {
 
                 <div>
                     <h4 class="font-bold text-xl mb-4 flex items-center gap-2">
-                        🌱 Orti Gestiti
+                        <Sprout class="w-6 h-6 text-primary" /> Orti Gestiti
                         <span class="badge badge-primary badge-outline">{{ getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length }}</span>
                     </h4>
                     
@@ -215,7 +218,7 @@ const showToast = (message, type = 'success') => {
                              class="card bg-base-100 border border-base-300 shadow-sm">
                             <div class="card-body p-5">
                                 <h5 class="card-title text-lg">{{ orto.nome }}</h5>
-                                <p class="text-sm text-gray-500 flex items-center gap-1">📍 {{ orto.indirizzo }}</p>
+                                <p class="text-sm text-gray-500 flex items-center gap-1"><MapPin class="w-4 h-4" /> {{ orto.indirizzo }}</p>
                                 
                                 <div class="divider my-2"></div>
                                 

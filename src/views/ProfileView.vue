@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { store } from '../store'
 import api from '../services/api'
+import { Globe } from 'lucide-vue-next'
 
 const router = useRouter()
 const { t, locale } = useI18n()
@@ -152,17 +153,23 @@ const changeLanguage = (lang) => {
               class="btn join-item" 
               :class="{ 'btn-primary': locale === 'it' }"
               @click="changeLanguage('it')"
-            >🇮🇹 IT</button>
+            >
+              <Globe class="w-4 h-4 mr-1" /> IT
+            </button>
             <button 
               class="btn join-item" 
               :class="{ 'btn-primary': locale === 'en' }"
               @click="changeLanguage('en')"
-            >🇬🇧 EN</button>
+            >
+              <Globe class="w-4 h-4 mr-1" /> EN
+            </button>
              <button 
               class="btn join-item" 
               :class="{ 'btn-primary': locale === 'de' }"
               @click="changeLanguage('de')"
-            >🇩🇪 DE</button>
+            >
+              <Globe class="w-4 h-4 mr-1" /> DE
+            </button>
           </div>
         </div>
 

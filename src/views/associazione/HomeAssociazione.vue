@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
 import { store } from '../../store'
+import { 
+  Sprout, Grid, Users, Info, MapPin, Signal, SignalLow, Handshake 
+} from 'lucide-vue-next'
 
 const orti = ref([])
 const affidamenti = ref([]) // AffidaOrto
@@ -206,7 +209,9 @@ const openUserModal = (userId) => {
       
       <!-- HEADER -->
       <div class="w-full max-w-6xl">
-          <h1 class="text-3xl font-bold text-primary mb-2">Dashboard Associazione</h1>
+          <h1 class="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
+            Dashboard Associazione <Handshake class="w-8 h-8" />
+          </h1>
           <p class="text-gray-600">Benvenuto nella tua area di gestione. Qui puoi monitorare i tuoi orti e le assegnazioni.</p>
       </div>
 
@@ -214,7 +219,7 @@ const openUserModal = (userId) => {
       <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
            <div class="stat bg-base-100 shadow-xl rounded-box border border-base-200">
                 <div class="stat-figure text-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <Sprout class="w-8 h-8" />
                 </div>
                 <div class="stat-title">Totale Orti</div>
                 <div class="stat-value text-primary">{{ totalOrti }}</div>
@@ -222,7 +227,7 @@ const openUserModal = (userId) => {
            
            <div class="stat bg-base-100 shadow-xl rounded-box border border-base-200">
                 <div class="stat-figure text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    <Grid class="w-8 h-8" />
                 </div>
                 <div class="stat-title">Lotti Totali</div>
                 <div class="stat-value text-secondary">{{ totalLotti }}</div>
@@ -230,7 +235,7 @@ const openUserModal = (userId) => {
 
            <div class="stat bg-base-100 shadow-xl rounded-box border border-base-200">
                 <div class="stat-figure text-accent">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <Users class="w-8 h-8" />
                 </div>
                 <div class="stat-title">Lotti Occupati</div>
                 <div class="stat-value text-accent">{{ totalLottiOccupati }}</div>
@@ -242,7 +247,7 @@ const openUserModal = (userId) => {
           <h2 class="text-2xl font-bold mb-4">I Tuoi Orti</h2>
           
           <div v-if="myOrti.length === 0" class="alert alert-info shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <Info class="stroke-current shrink-0 w-6 h-6" />
               <span>Non hai ancora orti assegnati alla tua associazione.</span>
           </div>
 
@@ -250,7 +255,7 @@ const openUserModal = (userId) => {
               <div v-for="orto in myOrti" :key="orto._id || orto.id" class="card bg-base-100 shadow-md border border-base-200 hover:shadow-xl transition-all">
                   <div class="card-body">
                       <h2 class="card-title text-primary">{{ orto.nome }}</h2>
-                      <p class="text-sm text-gray-500 mb-2">📍 {{ orto.indirizzo }}</p>
+                      <p class="text-sm text-gray-500 mb-2 flex items-center gap-1"><MapPin class="w-4 h-4" /> {{ orto.indirizzo }}</p>
                       
                       <div class="flex flex-col gap-2 my-2">
                           <div class="flex justify-between border-b pb-1">
@@ -304,7 +309,14 @@ const openUserModal = (userId) => {
                             </td>
                             <td>
                                 <div class="text-sm font-semibold">{{ getLottoData(lotto).dimensione }} mq</div>
-                                <div class="text-xs opacity-70">{{ getLottoData(lotto).sensori ? '📡 Con sensori' : '❌ No sensori' }}</div>
+                                <div class="text-xs opacity-70 flex items-center gap-1">
+                                    <template v-if="getLottoData(lotto).sensori">
+                                        <Signal class="w-3 h-3" /> Con sensori
+                                    </template>
+                                    <template v-else>
+                                        <SignalLow class="w-3 h-3" /> No sensori
+                                    </template>
+                                </div>
                             </td>
                             <td>
                                 <div class="badge" :class="getLottoAssignment(typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto) ? 'badge-error text-white' : 'badge-success text-white'">
