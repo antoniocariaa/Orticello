@@ -3,7 +3,9 @@ import { ref, onMounted} from 'vue'
 import api from '../../services/api'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
+import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
+import { Map, List, Plus, MapPin, Pencil, Handshake, Trash2 } from 'lucide-vue-next'
 
 const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Coordinate Trento
@@ -316,20 +318,20 @@ const saveOrto = async () => {
                         :class="viewMode === 'map' ? 'btn-active btn-neutral' : ''"
                         @click="viewMode = 'map'"
                     >
-                       🗺️ Mappa
+                       <Map class="w-4 h-4 mr-1" /> Mappa
                     </button>
                     <button 
                         class="btn btn-sm join-item" 
                         :class="viewMode === 'list' ? 'btn-active btn-neutral' : ''"
                         @click="viewMode = 'list'"
                     >
-                      📋 Lista
+                      <List class="w-4 h-4 mr-1" /> Lista
                     </button>
                   </div>
               </div>
           </div>
           <button @click="openAddModal" class="btn btn-primary gap-2 w-full md:w-auto">
-             <span class="text-xl">+</span> Aggiungi Orto
+             <Plus class="w-5 h-5" /> Aggiungi Orto
           </button>
       </div>
 
@@ -359,7 +361,7 @@ const saveOrto = async () => {
                     <div class="p-2 min-w-[200px]">
                         <h3 class="font-bold text-lg mb-1">{{ orto.nome }}</h3>
                         <p class="text-sm text-gray-600 mb-2 flex items-center gap-1">
-                            📍 {{ orto.indirizzo }}
+                            <MapPin class="w-3 h-3" /> {{ orto.indirizzo }}
                         </p>
                          <div class="flex items-center gap-2 mb-3 text-xs">
                             <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-error text-white' : 'badge-success text-white'">
@@ -367,8 +369,8 @@ const saveOrto = async () => {
                             </span>
                             <span class="badge badge-ghost badge-sm">Lotti: {{ orto.lotti?.length || 0 }}</span>
                         </div>
-                        <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning w-full">
-                            ✏️ Modifica
+                        <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning w-full gap-2">
+                            <Pencil class="w-3 h-3" /> Modifica
                         </button>
                     </div>
                 </l-popup>
@@ -395,18 +397,18 @@ const saveOrto = async () => {
     <!-- Association Name -->
     <div class="mb-3">
       <div v-if="isAssigned(orto._id || orto.id)" class="flex items-center gap-2 text-sm">
-        <span class="text-lg">🤝</span>
+        <Handshake class="w-4 h-4" />
         <span class="font-medium text-secondary">{{ getAssociazioneName(orto._id || orto.id) }}</span>
       </div>
       <div v-else class="flex items-center gap-2 text-sm text-gray-500">
-        <span class="text-lg">🤝</span>
+        <Handshake class="w-4 h-4" />
         <span class="italic">Nessuna</span>
       </div>
     </div>
     
     <!-- Address -->
     <div class="flex items-start gap-2 text-sm text-gray-600 mb-3">
-      <span class="text-base">📍</span>
+      <MapPin class="w-4 h-4 mt-0.5" />
       <span>{{ orto.indirizzo }}</span>
     </div>
     
@@ -420,7 +422,7 @@ const saveOrto = async () => {
     <!-- Action Button -->
     <div class="card-actions justify-end">
       <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning gap-1">
-        ✏️ Modifica
+        <Pencil class="w-3 h-3" /> Modifica
       </button>
     </div>
   </div>
@@ -459,10 +461,7 @@ const saveOrto = async () => {
                             <label class="label flex justify-between items-center">
                                 <span>Longitudine</span>
                                 <button type="button" @click="toggleCoordinateSelection" class="btn btn-xs btn-outline gap-1" :class="isSelectingCoordinates ? 'btn-success' : 'btn-neutral'">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
+                                    <MapPin class="w-3 h-3" />
                                     {{ isSelectingCoordinates ? 'Clicca mappa' : 'Dalla mappa' }}
                                 </button>
                             </label>
@@ -523,7 +522,7 @@ const saveOrto = async () => {
                             </div>
                             <div class="flex-none pb-0.5">
                                 <button type="button" @click="removeLotto(index)" class="btn btn-sm btn-square btn-ghost text-error hover:bg-error/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <Trash2 class="w-5 h-5" />
                                 </button>
                             </div>
                         </div>

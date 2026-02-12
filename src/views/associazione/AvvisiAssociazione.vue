@@ -3,11 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { store } from '@/store'
 import api from '@/services/api'
 import AvvisiBacheca from '@/components/AvvisiBacheca.vue'
+import { Plus, Pencil } from 'lucide-vue-next'
 
 export default {
   name: 'AvvisiAssociazione',
   components: {
-    AvvisiBacheca
+    AvvisiBacheca,
+    Plus,
+    Pencil
   },
   setup() {
     const avvisiBachecaRef = ref(null)
@@ -170,7 +173,7 @@ export default {
     <!-- Componente bacheca avvisi con gestione -->
     <AvvisiBacheca 
       ref="avvisiBachecaRef"
-      title="🔔 Avvisi Associazione"
+      title="Avvisi Associazione"
       subtitle="Gestisci e visualizza gli avvisi della tua associazione"
       :canEdit="true"
       :showAddButton="true"
@@ -182,8 +185,13 @@ export default {
     <!-- Modale per creare/modificare avviso -->
     <dialog :class="{ 'modal modal-open': showModal, 'modal': !showModal }">
       <div class="modal-box max-w-2xl">
-        <h3 class="font-bold text-lg mb-4">
-          {{ modalMode === 'create' ? '📝 Nuovo Avviso' : '✏️ Modifica Avviso' }}
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+          <template v-if="modalMode === 'create'">
+              <Plus class="w-6 h-6" /> Nuovo Avviso
+          </template>
+          <template v-else>
+              <Pencil class="w-6 h-6" /> Modifica Avviso
+          </template>
         </h3>
         
         <form @submit.prevent="saveAvviso" class="space-y-4">

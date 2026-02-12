@@ -3,7 +3,9 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../services/api'
 import { store } from '../../store'
-
+import { 
+  Building2, Globe, Users, AlertTriangle, Map, Sprout, Eye, Search, X 
+} from 'lucide-vue-next'
 const router = useRouter()
 
 // --- State ---
@@ -156,7 +158,9 @@ const goToAssegna = (ortoId) => {
       
           <div>
               <div class="mb-6">
-                  <h1 class="text-3xl font-bold text-secondary mb-1">Dashboard Comune 🏛️</h1>
+                  <h1 class="text-3xl font-bold text-secondary mb-1 flex items-center gap-2">
+                    Dashboard Comune <Building2 class="w-8 h-8" />
+                  </h1>
                   <p class="text-gray-600 text-sm">Panoramica gestionale degli orti urbani.</p>
               </div>
           </div>
@@ -181,7 +185,7 @@ const goToAssegna = (ortoId) => {
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
                       <div class="stat-figure text-secondary">
-                          <span class="text-3xl">🌍</span>
+                          <Globe class="w-8 h-8" />
                       </div>
                       <div class="stat-title text-xs uppercase font-bold tracking-wider">Totale Orti</div>
                       <div class="stat-value text-secondary text-2xl">{{ totalOrti }}</div>
@@ -190,7 +194,7 @@ const goToAssegna = (ortoId) => {
                   
                   <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
                       <div class="stat-figure text-primary">
-                          <span class="text-3xl">👥</span>
+                          <Users class="w-8 h-8" />
                       </div>
                       <div class="stat-title text-xs uppercase font-bold tracking-wider">Associazioni</div>
                       <div class="stat-value text-primary text-2xl">{{ totalAssociazioni }}</div>
@@ -199,7 +203,7 @@ const goToAssegna = (ortoId) => {
 
                   <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
                       <div class="stat-figure text-error">
-                          <span class="text-3xl">⚠️</span>
+                          <AlertTriangle class="w-8 h-8" />
                       </div>
                       <div class="stat-title text-xs uppercase font-bold tracking-wider">Da Assegnare</div>
                       <div class="stat-value text-2xl" :class="ortiNonAssegnati > 0 ? 'text-error' : 'text-success'">
@@ -224,7 +228,7 @@ const goToAssegna = (ortoId) => {
                                       v-model="searchQuery" 
                                   />
                                   <button v-if="searchQuery" class="btn btn-sm btn-square" @click="searchQuery = ''">
-                                      ✕
+                                      <X class="w-4 h-4" />
                                   </button>
                               </div>
                           </div>
@@ -238,7 +242,7 @@ const goToAssegna = (ortoId) => {
 
                       <div class="flex gap-2">
                           <router-link to="/comune/mappa" class="btn btn-outline btn-sm gap-2">
-                              🗺️ Mappa
+                               <Map class="w-4 h-4" /> Mappa
                           </router-link>
                       </div>
                   </div>
@@ -261,7 +265,7 @@ const goToAssegna = (ortoId) => {
                                       <div class="flex items-center space-x-3">
                                           <div class="avatar placeholder">
                                               <div class="bg-green-100 text-green-700 rounded-full w-10 h-10 flex items-center justify-center">
-                                                  <span class="text-lg">🌱</span>
+                                                  <Sprout class="w-6 h-6" />
                                               </div>
                                           </div>
                                           <div>
@@ -296,8 +300,8 @@ const goToAssegna = (ortoId) => {
                                   </td>
 
                                   <td class="text-right">
-                                      <button class="btn btn-ghost btn-xs mr-2" @click="openDetailsModal(orto)">
-                                          👁️ Dettagli
+                                      <button class="btn btn-ghost btn-xs mr-2 gap-1" @click="openDetailsModal(orto)">
+                                          <Eye class="w-3 h-3" /> Dettagli
                                       </button>
                                   </td>
                               </tr>
@@ -305,7 +309,7 @@ const goToAssegna = (ortoId) => {
                               <tr v-if="paginatedOrti.length === 0">
                                   <td colspan="5" class="text-center py-8 text-gray-500">
                                       <div class="flex flex-col items-center gap-2">
-                                          <span class="text-4xl">🔍</span>
+                                          <Search class="w-8 h-8 opacity-50" />
                                           <span>Nessun orto trovato con i filtri attuali.</span>
                                       </div>
                                   </td>
@@ -331,7 +335,7 @@ const goToAssegna = (ortoId) => {
 
           <dialog class="modal" :class="{ 'modal-open': isDetailsModalOpen }">
               <div class="modal-box max-w-2xl">
-                  <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="closeDetailsModal">✕</button>
+                  <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="closeDetailsModal"><X class="w-4 h-4" /></button>
                   
                   <h3 class="font-bold text-2xl mb-4 text-secondary" v-if="selectedOrto">
                       {{ selectedOrto.nome }}

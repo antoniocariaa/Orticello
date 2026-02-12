@@ -3,6 +3,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../services/api'
 import { store } from '../../store'
+import { 
+  Sprout, Search, MapPin, Calendar, Clock, Maximize, Signal, 
+  CheckCircle, XCircle, Handshake, Mail, Phone 
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const loading = ref(true)
@@ -115,12 +119,14 @@ onMounted(fetchData)
     <div v-else-if="!assignment" class="hero bg-base-100 rounded-box shadow-xl max-w-4xl p-10">
         <div class="hero-content text-center">
             <div class="max-w-md">
-                <h1 class="text-5xl font-bold text-primary">Benvenuto! 🌿</h1>
+                <h1 class="text-5xl font-bold text-primary flex justify-center items-center gap-4">
+                    Benvenuto! <Sprout class="w-12 h-12" />
+                </h1>
                 <p class="py-6 text-lg">
                     Non hai ancora un orto assegnato. Inizia la tua avventura nel verde cercando un orto disponibile nel tuo comune.
                 </p>
-                <button @click="router.push('/cittadino/cerca')" class="btn btn-primary btn-lg text-white shadow-lg animate-pulse">
-                    🔍 Cerca un Orto
+                <button @click="router.push('/cittadino/cerca')" class="btn btn-primary btn-lg text-white shadow-lg animate-pulse gap-2">
+                    <Search class="w-6 h-6" /> Cerca un Orto
                 </button>
             </div>
         </div>
@@ -131,7 +137,9 @@ onMounted(fetchData)
         
         <!-- Header / Welcome -->
         <div class="text-center mb-4">
-            <h1 class="text-3xl font-bold text-gray-800">Il tuo Orto 🥬</h1>
+            <h1 class="text-3xl font-bold text-gray-800 flex justify-center items-center gap-2">
+                Il tuo Orto <Sprout class="w-8 h-8 text-primary" />
+            </h1>
             <p class="text-gray-500">Gestisci la tua coltivazione e visualizza i dettagli.</p>
         </div>
 
@@ -144,10 +152,7 @@ onMounted(fetchData)
                         {{ ortoDetails?.nome || 'Orto Sconosciuto' }}
                     </h2>
                     <div class="flex items-center gap-2 text-gray-600 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                        </svg>
+                        <MapPin class="w-5 h-5" />
                         {{ ortoDetails?.indirizzo || 'Indirizzo non disponibile' }}
                     </div>
 
@@ -155,23 +160,24 @@ onMounted(fetchData)
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Data Inizio</div>
+                            <div class="stat-title flex items-center gap-2"><Calendar class="w-4 h-4" /> Data Inizio</div>
                             <div class="stat-value text-lg">{{ formatDate(assignment.data_inizio) }}</div>
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Scadenza</div>
+                            <div class="stat-title flex items-center gap-2"><Clock class="w-4 h-4" /> Scadenza</div>
                             <div class="stat-value text-lg">{{ formatDate(assignment.data_fine) || 'Illimitata' }}</div>
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Dimensione</div>
+                            <div class="stat-title flex items-center gap-2"><Maximize class="w-4 h-4" /> Dimensione</div>
                             <div class="stat-value text-lg">
                                 {{ assignment.lotto?.dimensione || '-' }} mq
                             </div>
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Sensori</div>
-                            <div class="stat-value text-lg">
-                                {{ assignment.lotto?.sensori ? 'Presenti ✅' : 'Assenti ❌' }}
+                            <div class="stat-title flex items-center gap-2"><Signal class="w-4 h-4" /> Sensori</div>
+                            <div class="stat-value text-lg flex items-center gap-2">
+                                <span v-if="assignment.lotto?.sensori" class="text-success flex items-center gap-1">Presenti <CheckCircle class="w-4 h-4" /></span>
+                                <span v-else class="text-error flex items-center gap-1">Assenti <XCircle class="w-4 h-4" /></span>
                             </div>
                         </div>
                     </div>
@@ -184,8 +190,8 @@ onMounted(fetchData)
                 <!-- Association Card -->
                 <div class="card bg-base-100 shadow-xl border border-base-200">
                     <div class="card-body">
-                        <h3 class="card-title text-secondary text-lg">
-                            🤝 Gestito da
+                        <h3 class="card-title text-secondary text-lg flex items-center gap-2">
+                            <Handshake class="w-5 h-5" /> Gestito da
                         </h3>
                         <div v-if="associationDetails">
                             <div class="font-bold text-xl mb-1">{{ associationDetails.nome }}</div>
@@ -193,13 +199,13 @@ onMounted(fetchData)
                             
                             <div class="flex flex-col gap-2">
                                 <div class="flex items-center gap-2">
-                                    <span>📧</span>
+                                    <Mail class="w-4 h-4" />
                                     <a :href="'mailto:' + associationDetails.email" class="link link-primary">
                                         {{ associationDetails.email }}
                                     </a>
                                 </div>
                                 <div v-if="associationDetails.telefono" class="flex items-center gap-2">
-                                    <span>📞</span>
+                                    <Phone class="w-4 h-4" />
                                     <a :href="'tel:' + associationDetails.telefono" class="link link-primary">
                                         {{ associationDetails.telefono }}
                                     </a>
