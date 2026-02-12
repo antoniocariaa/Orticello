@@ -10,6 +10,11 @@ import {
 
 export default {
   name: 'AvvisiBacheca',
+  components: {
+    Bell, RefreshCw, Search, Users, Folder, Calendar, CheckCircle, 
+    Plus, AlertCircle, Info, MoreVertical, Check, Circle, Pencil, Trash2, 
+    Building2, Sprout
+  },
   props: {
     title: {
       type: String,
@@ -26,6 +31,14 @@ export default {
     showAddButton: {
       type: Boolean,
       default: false
+    },
+    icon: {
+      type: Object,
+      default: null
+    },
+    buttonIcon: {
+      type: Object,
+      default: null
     }
   },
   emits: ['edit', 'delete', 'add'],
@@ -432,7 +445,7 @@ export default {
   <div class="container mx-auto px-4 py-6 max-w-6xl">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-warning mb-2 flex items-center gap-2">
-        <Bell class="w-8 h-8" />
+        <component :is="icon || 'Bell'" class="w-8 h-8" />
         {{ title }}
       </h1>
       <p class="text-base-content/70">{{ subtitle }}</p>
@@ -518,7 +531,7 @@ export default {
         @click="handleAdd" 
         class="btn btn-warning gap-2"
       >
-        <Plus class="w-5 h-5" />
+        <component :is="buttonIcon || 'Plus'" class="w-5 h-5" />
         Nuovo Avviso
       </button>
     </div>

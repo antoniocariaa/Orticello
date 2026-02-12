@@ -3,7 +3,6 @@ import { ref, onMounted} from 'vue'
 import api from '../../services/api'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
-import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
 import { Map, List, Plus, MapPin, Pencil, Handshake, Trash2 } from 'lucide-vue-next'
 
