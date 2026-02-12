@@ -1,5 +1,6 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { store } from '@/store'
 import api from '@/services/api'
 import { 
@@ -18,11 +19,11 @@ export default {
   props: {
     title: {
       type: String,
-      default: 'Bacheca Avvisi'
+      default: null 
     },
     subtitle: {
       type: String,
-      default: 'Rimani aggiornato con le ultime comunicazioni dal Comune e dalle Associazioni'
+      default: null
     },
     canEdit: {
       type: Boolean,
@@ -43,6 +44,7 @@ export default {
   },
   emits: ['edit', 'delete', 'add'],
   setup(props, { emit, expose }) {
+    const { t } = useI18n()
     const avvisi = ref([])
     const loading = ref(false)
     const error = ref(null)
@@ -75,6 +77,9 @@ export default {
       toast.value = { show: true, message, type }
       setTimeout(() => toast.value.show = false, 3000)
     }
+
+    const displayTitle = computed(() => props.title || t('components.avvisi_bacheca.title'))
+    const displaySubtitle = computed(() => props.subtitle || t('components.avvisi_bacheca.subtitle'))
     
     const loadUserAssociazioni = async () => {
       // Eseguiamo solo se c'è un utente loggato ed è un cittadino
@@ -311,10 +316,10 @@ export default {
           letto: true,
           dataLettura: new Date().toISOString()
         }
-        showToast('Avviso segnato come letto', 'success')
+        showToast(t('components.avvisi_bacheca.notice_marked_read'), 'success')
       } catch (err) {
         console.error('Errore nel marcare come letto:', err)
-        showToast('Errore nel marcare l\'avviso come letto', 'error')
+        showToast(t('components.avvisi_bacheca.error_marking_read'), 'error')
       }
     }
     
@@ -334,9 +339,9 @@ export default {
     // Ottieni label dell'emittente
     const getEmittenteLabel = (avviso) => {
       if (avviso.tipo === 'comu') {
-        return 'Comune'
+        return t('general.comune')
       } else if (avviso.tipo === 'asso') {
-        return 'Associazione'
+        return t('general.associazione')
       }
       return 'N/A'
     }
@@ -435,7 +440,9 @@ export default {
       handleAdd,
       toast,
       store,
-      userAssociazioni // Esposto per eventuale debug
+      userAssociazioni, // Esposto per eventuale debug
+      displayTitle,
+      displaySubtitle
     }
   }
 }
@@ -446,54 +453,54 @@ export default {
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-warning mb-2 flex items-center gap-2">
         <component :is="icon || 'Bell'" class="w-8 h-8" />
-        {{ title }}
+        {{ displayTitle }}
       </h1>
-      <p class="text-base-content/70">{{ subtitle }}</p>
+      <p class="text-base-content/70">{{ displaySubtitle }}</p>
     </div>
 
     <div class="card bg-base-200 shadow-md mb-6">
       <div class="card-body p-4">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold">Filtri</h3>
+          <h3 class="text-lg font-semibold">{{ $t('components.avvisi_bacheca.filters') }}</h3>
           <button 
             @click="resetFiltri" 
             class="btn btn-sm btn-ghost gap-2"
           >
             <RefreshCw class="w-4 h-4" />
-            Reset
+            {{ $t('components.avvisi_bacheca.reset') }}
           </button>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text flex items-center gap-2"><Search class="w-4 h-4" /> Cerca</span>
+              <span class="label-text flex items-center gap-2"><Search class="w-4 h-4" /> {{ $t('general.search') }}</span>
             </label>
             <input 
               v-model="searchText"
               type="text" 
-              placeholder="Cerca negli avvisi..." 
+              :placeholder="$t('components.avvisi_bacheca.search_placeholder')" 
               class="input input-bordered input-sm"
             />
           </div>
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text flex items-center gap-2"><Users class="w-4 h-4" /> Emittente</span>
+              <span class="label-text flex items-center gap-2"><Users class="w-4 h-4" /> {{ $t('components.avvisi_bacheca.issuer') }}</span>
             </label>
             <select v-model="filterEmittente" @change="reloadOnFilterChange" class="select select-bordered select-sm">
-              <option value="all">Tutti</option>
-              <option value="comu">Comune</option>
-              <option value="asso">Associazione</option>
+              <option value="all">{{ $t('general.all') }}</option>
+              <option value="comu">{{ $t('general.comune') }}</option>
+              <option value="asso">{{ $t('general.associazione') }}</option>
             </select>
           </div>
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text flex items-center gap-2"><Folder class="w-4 h-4" /> Categoria</span>
+              <span class="label-text flex items-center gap-2"><Folder class="w-4 h-4" /> {{ $t('components.avvisi_bacheca.category') }}</span>
             </label>
             <select v-model="filterCategoria" @change="reloadOnFilterChange" class="select select-bordered select-sm">
-              <option value="all">Tutte</option>
+              <option value="all">{{ $t('general.all_f') }}</option>
               <option v-for="cat in categorie" :key="cat" :value="cat">
                 {{ cat }}
               </option>
@@ -502,24 +509,24 @@ export default {
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text flex items-center gap-2"><Calendar class="w-4 h-4" /> Data</span>
+              <span class="label-text flex items-center gap-2"><Calendar class="w-4 h-4" /> {{ $t('general.date') }}</span>
             </label>
             <select v-model="filterData" @change="reloadOnFilterChange" class="select select-bordered select-sm">
-              <option value="all">Tutte</option>
-              <option value="today">Oggi</option>
-              <option value="week">Ultima settimana</option>
-              <option value="month">Ultimo mese</option>
+              <option value="all">{{ $t('general.all_f') }}</option>
+              <option value="today">{{ $t('general.today') }}</option>
+              <option value="week">{{ $t('general.last_week') }}</option>
+              <option value="month">{{ $t('general.last_month') }}</option>
             </select>
           </div>
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text flex items-center gap-2"><CheckCircle class="w-4 h-4" /> Stato</span>
+              <span class="label-text flex items-center gap-2"><CheckCircle class="w-4 h-4" /> {{ $t('general.status') }}</span>
             </label>
             <select v-model="filterLetto" @change="reloadOnFilterChange" class="select select-bordered select-sm">
-              <option value="all">Tutti</option>
-              <option value="non-letto">Non letti</option>
-              <option value="letto">Letti</option>
+              <option value="all">{{ $t('general.all') }}</option>
+              <option value="non-letto">{{ $t('components.avvisi_bacheca.unread') }}</option>
+              <option value="letto">{{ $t('components.avvisi_bacheca.read') }}</option>
             </select>
           </div>
         </div>
@@ -532,7 +539,7 @@ export default {
         class="btn btn-warning gap-2"
       >
         <component :is="buttonIcon || 'Plus'" class="w-5 h-5" />
-        Nuovo Avviso
+        {{ $t('components.avvisi_bacheca.new_notice') }}
       </button>
     </div>
 
@@ -545,18 +552,18 @@ export default {
         <AlertCircle class="stroke-current flex-shrink-0 h-6 w-6" />
         <span>{{ error }}</span>
       </div>
-      <button @click="loadAvvisi" class="btn btn-sm">Riprova</button>
+      <button @click="loadAvvisi" class="btn btn-sm">{{ $t('general.retry') }}</button>
     </div>
 
     <div v-else>
       <div class="mb-4 text-sm text-base-content/70">
-        {{ avvisiFiltrati.length }} avviso{{ avvisiFiltrati.length !== 1 ? 'i' : '' }} trovato{{ avvisiFiltrati.length !== 1 ? 'i' : '' }}
+        {{ $t('components.avvisi_bacheca.avvisi_found', { count: avvisiFiltrati.length }, avvisiFiltrati.length) }}
       </div>
 
       <div v-if="avvisiFiltrati.length === 0" class="alert alert-info shadow-lg">
         <div>
           <Info class="stroke-current flex-shrink-0 w-6 h-6" />
-          <span>Nessun avviso disponibile con i filtri selezionati.</span>
+          <span>{{ $t('components.avvisi_bacheca.no_notices') }}</span>
         </div>
       </div>
 
@@ -572,7 +579,7 @@ export default {
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="badge badge-sm gap-1" :class="avviso.tipo === 'comu' ? 'badge-primary' : 'badge-secondary'">
-                    <Building2 v-if="avviso.tipo === 'comu'" class="w-3 h-3" />
+                    <Building2 v-if="avviso.tipo === 'comu' ? true : false" class="w-3 h-3" />
                     <Sprout v-else class="w-3 h-3" />
                     {{ getEmittenteLabel(avviso) }}
                   </span>
@@ -580,7 +587,7 @@ export default {
                     {{ avviso.categoria }}
                   </span>
                   <span v-if="!isLetto(avviso._id)" class="badge badge-sm badge-warning">
-                    Nuovo
+                    {{ $t('general.new') }}
                   </span>
                 </div>
                 <h2 class="card-title text-xl">
@@ -596,13 +603,13 @@ export default {
                   <li v-if="!isLetto(avviso._id)">
                     <a @click="segnaComeLetto(avviso._id)" class="flex items-center gap-2">
                       <Check class="w-4 h-4 text-success" />
-                      Segna come letto
+                      {{ $t('components.avvisi_bacheca.mark_as_read') }}
                     </a>
                   </li>
                   <li v-else>
                     <a @click="segnaComeDaLeggere(avviso._id)" class="flex items-center gap-2">
                        <Circle class="w-4 h-4 text-warning" />
-                       Segna come da leggere
+                       {{ $t('components.avvisi_bacheca.mark_as_unread') }}
                     </a>
                   </li>
                   
@@ -611,13 +618,13 @@ export default {
                     <li>
                       <a @click="handleEdit(avviso)" class="text-info flex items-center gap-2">
                         <Pencil class="w-4 h-4" />
-                        Modifica
+                        {{ $t('general.edit') }}
                       </a>
                     </li>
                     <li>
                       <a @click="handleDelete(avviso)" class="text-error flex items-center gap-2">
                         <Trash2 class="w-4 h-4" />
-                        Elimina
+                        {{ $t('general.delete') }}
                       </a>
                     </li>
                   </template>

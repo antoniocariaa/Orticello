@@ -50,8 +50,8 @@ const openModal = (bando) => {
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-primary">Bandi Attivi</h1>
-                <p class="text-gray-600 mt-1">Consulta i bandi attivi per l'assegnazione degli orti.</p>
+                <h1 class="text-3xl font-bold text-primary">{{ $t('association.tenders.title') }}</h1>
+                <p class="text-gray-600 mt-1">{{ $t('association.tenders.subtitle') }}</p>
             </div>
         </div>
 
@@ -59,7 +59,7 @@ const openModal = (bando) => {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-if="activeBandi.length === 0" class="col-span-full text-center py-10 opacity-50 bg-base-100 rounded-lg shadow-sm border border-base-200 flex flex-col items-center">
                 <MailX class="w-16 h-16 mb-2" />
-                <p>Nessun bando attivo al momento.</p>
+                <p>{{ $t('association.tenders.no_active_tenders') }}</p>
             </div>
 
             <div 
@@ -80,17 +80,17 @@ const openModal = (bando) => {
                      
                     <div class="text-xs text-gray-500 flex flex-col gap-1 mb-2">
                         <span class="flex items-center gap-1">
-                            <Calendar class="w-3 h-3" /> Dal: <span class="font-medium text-base-content">{{ formatDate(bando.data_inizio) }}</span>
+                            <Calendar class="w-3 h-3" /> {{ $t('association.tenders.from') }}: <span class="font-medium text-base-content">{{ formatDate(bando.data_inizio) }}</span>
                         </span>
                         <span class="flex items-center gap-1 text-error">
-                            <Clock class="w-3 h-3" /> Scadenza: <span class="font-bold">{{ formatDate(bando.data_fine) }}</span>
+                            <Clock class="w-3 h-3" /> {{ $t('association.tenders.deadline_label') }} <span class="font-bold">{{ formatDate(bando.data_fine) }}</span>
                         </span>
                     </div>
                    
                     <p class="text-sm text-gray-600 line-clamp-3 mb-3">{{ bando.messaggio }}</p>
 
                     <div class="card-actions justify-end mt-auto">
-                        <span class="text-xs text-primary font-medium hover:underline">Leggi tutto →</span>
+                        <span class="text-xs text-primary font-medium hover:underline">{{ $t('association.tenders.read_more') }}</span>
                     </div>
                 </div>
             </div>

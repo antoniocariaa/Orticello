@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '../services/api'
 import { store } from '../store'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const form = ref({
   email: '',
@@ -20,12 +22,12 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 const loginWithGoogle = () => {
   if (!GOOGLE_CLIENT_ID) {
-    error.value = 'Google Client ID non configurato. Aggiungi VITE_GOOGLE_CLIENT_ID al file .env'
+    error.value = t('auth.google_client_id_missing')
     return
   }
   
   if (!window.google) {
-    error.value = 'Google Sign-In non è caricato. Ricarica la pagina.'
+    error.value = t('auth.google_signin_not_loaded')
     return
   }
   
@@ -34,7 +36,7 @@ const loginWithGoogle = () => {
     window.google.accounts.id.prompt()
   } catch (err) {
     console.error('Errore Google Sign-In:', err)
-    error.value = 'Errore durante l\'autenticazione con Google'
+    error.value = t('auth.google_failed')
   }
 }
 
@@ -179,19 +181,19 @@ onMounted(() => {
     </div>
     <div class="card bg-base-100 shadow-xl w-full">
       <div class="card-body p-6 sm:p-8">
-      <h2 class="card-title text-2xl font-bold text-center justify-center mb-6 text-primary">Bentornato</h2>
+      <h2 class="card-title text-2xl font-bold text-center justify-center mb-6 text-primary">{{ $t('auth.welcome_back') }}</h2>
       
       <form @submit.prevent="login" class="space-y-4">
         <div class="form-control">
           <label class="label">
-            <span class="label-text">Email</span>
+            <span class="label-text">{{ $t('auth.email') }}</span>
           </label>
           <input type="email" v-model="form.email" placeholder="email@esempio.com" class="input input-bordered w-full" required />
         </div>
 
         <div class="form-control">
           <label class="label">
-            <span class="label-text">Password</span>
+            <span class="label-text">{{ $t('auth.password') }}</span>
           </label>
           <div class="relative">
             <input 
@@ -216,7 +218,7 @@ onMounted(() => {
             </button>
           </div>
           <label class="label">
-            <a href="#" class="label-text-alt link link-hover">Password dimenticata?</a>
+            <a href="#" class="label-text-alt link link-hover">{{ $t('auth.forgot_password') }}</a>
           </label>
         </div>
 
@@ -229,7 +231,7 @@ onMounted(() => {
           <div class="flex gap-2">
             <button type="submit" class="btn btn-primary flex-1" :disabled="loading || loadingGoogle">
               <span v-if="loading" class="loading loading-spinner"></span>
-              Accedi
+              {{ $t('auth.login') }}
             </button>
             <button 
               type="button" 
@@ -251,7 +253,7 @@ onMounted(() => {
       </form>
 
       <div class="text-center mt-4">
-        <p class="text-sm">Non hai un account? <router-link to="/register" class="link link-primary">Registrati ora</router-link></p>
+        <p class="text-sm">{{ $t('auth.no_account') }} <router-link to="/register" class="link link-primary">{{ $t('auth.register') }}</router-link></p>
       </div>
       </div>
     </div>

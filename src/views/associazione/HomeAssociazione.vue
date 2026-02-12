@@ -210,9 +210,9 @@ const openUserModal = (userId) => {
       <!-- HEADER -->
       <div class="w-full max-w-6xl">
           <h1 class="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
-            Dashboard Associazione <Handshake class="w-8 h-8" />
+            {{ $t('association.dashboard.title') }} <Handshake class="w-8 h-8" />
           </h1>
-          <p class="text-gray-600">Benvenuto nella tua area di gestione. Qui puoi monitorare i tuoi orti e le assegnazioni.</p>
+          <p class="text-gray-600">{{ $t('association.dashboard.subtitle') }}</p>
       </div>
 
       <!-- METRICS CARDS -->
@@ -221,7 +221,7 @@ const openUserModal = (userId) => {
                 <div class="stat-figure text-primary">
                     <Sprout class="w-8 h-8" />
                 </div>
-                <div class="stat-title">Totale Orti</div>
+                <div class="stat-title">{{ $t('association.dashboard.total_gardens') }}</div>
                 <div class="stat-value text-primary">{{ totalOrti }}</div>
            </div>
            
@@ -229,7 +229,7 @@ const openUserModal = (userId) => {
                 <div class="stat-figure text-secondary">
                     <Grid class="w-8 h-8" />
                 </div>
-                <div class="stat-title">Lotti Totali</div>
+                <div class="stat-title">{{ $t('association.dashboard.total_lots') }}</div>
                 <div class="stat-value text-secondary">{{ totalLotti }}</div>
            </div>
 
@@ -237,18 +237,18 @@ const openUserModal = (userId) => {
                 <div class="stat-figure text-accent">
                     <Users class="w-8 h-8" />
                 </div>
-                <div class="stat-title">Lotti Occupati</div>
+                <div class="stat-title">{{ $t('association.dashboard.occupied_lots') }}</div>
                 <div class="stat-value text-accent">{{ totalLottiOccupati }}</div>
            </div>
       </div>
 
       <!-- ORTI LIST -->
       <div class="w-full max-w-6xl">
-          <h2 class="text-2xl font-bold mb-4">I Tuoi Orti</h2>
+          <h2 class="text-2xl font-bold mb-4">{{ $t('association.dashboard.your_gardens') }}</h2>
           
           <div v-if="myOrti.length === 0" class="alert alert-info shadow-lg">
               <Info class="stroke-current shrink-0 w-6 h-6" />
-              <span>Non hai ancora orti assegnati alla tua associazione.</span>
+              <span>{{ $t('association.dashboard.no_gardens_assigned') }}</span>
           </div>
 
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -259,25 +259,25 @@ const openUserModal = (userId) => {
                       
                       <div class="flex flex-col gap-2 my-2">
                           <div class="flex justify-between border-b pb-1">
-                              <span class="text-sm font-semibold">Superficie:</span>
+                              <span class="text-sm font-semibold">{{ $t('association.dashboard.surface') }}</span>
                               <span class="text-sm">{{ getTotalSize(orto) }} mq</span>
                           </div>
                           <div class="flex justify-between border-b pb-1">
-                              <span class="text-sm font-semibold">Lotti Totali:</span>
+                              <span class="text-sm font-semibold">{{ $t('association.dashboard.total_lots_label') }}</span>
                               <span class="text-sm">{{ orto.lotti?.length || 0 }}</span>
                           </div>
                           <div class="flex justify-between border-b pb-1">
-                              <span class="text-sm font-semibold">Lotti Liberi:</span>
+                              <span class="text-sm font-semibold">{{ $t('association.dashboard.free_lots') }}</span>
                               <span class="text-sm">{{ getLottiLiberi(orto) }}</span>
                           </div>
                           <div class="flex justify-between border-b pb-1">
-                              <span class="text-sm font-semibold">Scadenza:</span>
+                              <span class="text-sm font-semibold">{{ $t('association.dashboard.expiry') }}</span>
                               <span class="text-sm">{{ formatDate(getScadenzaOrto(orto)) }}</span>
                           </div>
                       </div>
 
                       <div class="card-actions justify-end mt-4">
-                          <button class="btn btn-primary w-full" @click="openDetailsModal(orto)">Dettagli e Gestione</button>
+                          <button class="btn btn-primary w-full" @click="openDetailsModal(orto)">{{ $t('association.dashboard.details_management') }}</button>
                       </div>
                   </div>
               </div>
@@ -288,18 +288,18 @@ const openUserModal = (userId) => {
       <dialog class="modal" :class="{ 'modal-open': isDetailsModalOpen }">
           <div class="modal-box w-11/12 max-w-5xl">
               <h3 class="font-bold text-lg mb-4 text-primary" v-if="selectedOrto">
-                  Gestione {{ selectedOrto.nome }}
+                  {{ $t('association.dashboard.management_title', { name: selectedOrto.nome }) }}
               </h3>
               
               <div v-if="selectedOrto" class="overflow-x-auto">
                 <table class="table w-full">
                     <thead>
                         <tr>
-                            <th>Lotto</th>
-                            <th>Caratteristiche</th>
-                            <th>Stato</th>
-                            <th>Cittadino</th>
-                            <th>Scadenza</th>
+                            <th>{{ $t('association.dashboard.lot') }}</th>
+                            <th>{{ $t('association.dashboard.characteristics') }}</th>
+                            <th>{{ $t('association.dashboard.status') }}</th>
+                            <th>{{ $t('association.dashboard.citizen') }}</th>
+                            <th>{{ $t('association.dashboard.expiry') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -311,16 +311,16 @@ const openUserModal = (userId) => {
                                 <div class="text-sm font-semibold">{{ getLottoData(lotto).dimensione }} mq</div>
                                 <div class="text-xs opacity-70 flex items-center gap-1">
                                     <template v-if="getLottoData(lotto).sensori">
-                                        <Signal class="w-3 h-3" /> Con sensori
+                                        <Signal class="w-3 h-3" /> {{ $t('association.dashboard.with_sensors') }}
                                     </template>
                                     <template v-else>
-                                        <SignalLow class="w-3 h-3" /> No sensori
+                                        <SignalLow class="w-3 h-3" /> {{ $t('association.dashboard.no_sensors') }}
                                     </template>
                                 </div>
                             </td>
                             <td>
                                 <div class="badge" :class="getLottoAssignment(typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto) ? 'badge-error text-white' : 'badge-success text-white'">
-                                    {{ getLottoAssignment(typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto) ? 'Occupato' : 'Libero' }}
+                                    {{ getLottoAssignment(typeof lotto === 'object' ? (lotto._id || lotto.id) : lotto) ? $t('association.dashboard.occupied') : $t('association.dashboard.free') }}
                                 </div>
                             </td>
                             <td>
