@@ -1,6 +1,8 @@
+```html
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
+import { FileText, Download, Calendar, Clock, MailX } from 'lucide-vue-next';
 
 
 const bandi = ref([])
@@ -55,8 +57,8 @@ const openModal = (bando) => {
 
         <!-- Active Bandi Content -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-if="activeBandi.length === 0" class="col-span-full text-center py-10 opacity-50 bg-base-100 rounded-lg shadow-sm border border-base-200">
-                <div class="text-4xl mb-2">📭</div>
+            <div v-if="activeBandi.length === 0" class="col-span-full text-center py-10 opacity-50 bg-base-100 rounded-lg shadow-sm border border-base-200 flex flex-col items-center">
+                <MailX class="w-16 h-16 mb-2" />
                 <p>Nessun bando attivo al momento.</p>
             </div>
 
@@ -71,14 +73,17 @@ const openModal = (bando) => {
                         <h2 class="card-title text-lg mb-1 leading-tight">
                             {{ bando.titolo }}
                         </h2>
+                        <a v-if="bando.allegato" :href="bando.allegato" download class="btn btn-sm btn-outline gap-2">
+                           <FileText class="w-4 h-4" />
+                        </a>
                     </div>
                      
                     <div class="text-xs text-gray-500 flex flex-col gap-1 mb-2">
                         <span class="flex items-center gap-1">
-                            📅 Dal: <span class="font-medium text-base-content">{{ formatDate(bando.data_inizio) }}</span>
+                            <Calendar class="w-3 h-3" /> Dal: <span class="font-medium text-base-content">{{ formatDate(bando.data_inizio) }}</span>
                         </span>
                         <span class="flex items-center gap-1 text-error">
-                            ⏰ Scadenza: <span class="font-bold">{{ formatDate(bando.data_fine) }}</span>
+                            <Clock class="w-3 h-3" /> Scadenza: <span class="font-bold">{{ formatDate(bando.data_fine) }}</span>
                         </span>
                     </div>
                    
@@ -100,10 +105,10 @@ const openModal = (bando) => {
                 
                 <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6 border-b pb-4">
                     <span class="flex items-center gap-1 bg-base-200 px-2 py-1 rounded">
-                        📅 Inizio: <b>{{ formatDate(selectedBando.data_inizio) }}</b>
+                        <Calendar class="w-4 h-4" /> Inizio: <b>{{ formatDate(selectedBando.data_inizio) }}</b>
                     </span>
                     <span class="flex items-center gap-1 bg-error/10 text-error px-2 py-1 rounded">
-                        ⏰ Scadenza: <b>{{ formatDate(selectedBando.data_fine) }}</b>
+                        <Clock class="w-4 h-4" /> Scadenza: <b>{{ formatDate(selectedBando.data_fine) }}</b>
                     </span>
                 </div>
 
@@ -112,8 +117,8 @@ const openModal = (bando) => {
                 </div>
 
                 <div class="modal-action flex justify-between items-center">
-                    <a v-if="selectedBando.link" :href="selectedBando.link" target="_blank" class="btn btn-primary btn-sm">
-                        📄 Scarica Allegato
+                    <a v-if="selectedBando.link" :href="selectedBando.link" target="_blank" class="btn btn-primary btn-sm gap-2">
+                        <FileText class="w-4 h-4" /> Scarica Allegato
                     </a>
                     <form method="dialog">
                         <button class="btn btn-sm" @click="isModalOpen = false">Chiudi</button>

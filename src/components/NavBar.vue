@@ -1,9 +1,15 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { store } from '../store'
+import { 
+  Sprout, Search, Info, Bell, LayoutDashboard, Handshake, Map, 
+  Megaphone, ScrollText, Inbox, LogOut
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
+const { t, locale } = useI18n()
 
 const logout = () => {
   localStorage.removeItem('token')
@@ -11,13 +17,17 @@ const logout = () => {
   store.clearUser()
   router.push('/login')
 }
+
+const changeLanguage = (lang) => {
+  locale.value = lang
+}
 </script>
 
 <template>
   <!-- Navbar Desktop - Solo desktop -->
   <div v-if="!route.meta.hideNavbar" class="navbar bg-base-100 shadow-sm w-full hidden md:flex">
     <div class="flex-none">
-      <router-link to="/" class="btn btn-ghost text-xl text-primary font-bold">Orticello</router-link>
+      <router-link to="/" class="btn btn-ghost text-xl text-primary font-bold">{{ $t('general.brand') }}</router-link>
     </div>
 
     <!--Desktop Menu -->
@@ -25,51 +35,60 @@ const logout = () => {
       <!-- Cittadino Navbar Menu -->
       <ul v-if="store.user?.tipo === 'citt'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
-          <router-link to="/cittadino/orto" active-class="active" class="font-medium">
-            🌿 Il tuo Orto
+          <router-link to="/cittadino/orto" active-class="active" class="font-medium flex items-center gap-2">
+            <Sprout class="w-4 h-4" />
+            {{ $t('nav.your_garden') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/cittadino/cerca" active-class="active" class="font-medium">
-            🔍 Cerca Orto
+          <router-link to="/cittadino/cerca" active-class="active" class="font-medium flex items-center gap-2">
+            <Search class="w-4 h-4" />
+            {{ $t('nav.search_garden') }}
           </router-link>
         </li>
         <li>
-          <button disabled class="font-medium opacity-50 cursor-not-allowed" title="Info orto (in arrivo)">
-            ℹ️ Info Orto
+          <button disabled class="font-medium opacity-50 cursor-not-allowed flex items-center gap-2" :title="$t('nav.info_garden_tooltip')">
+             <Info class="w-4 h-4" />
+             {{ $t('nav.info_garden') }}
           </button>
         </li>
         <li>
-          <router-link to="/cittadino/avvisi" active-class="active" class="font-medium">
-            🔔 Avvisi
+          <router-link to="/cittadino/avvisi" active-class="active" class="font-medium flex items-center gap-2">
+             <Bell class="w-4 h-4" />
+             {{ $t('nav.notices') }}
           </router-link>
         </li>
       </ul>
       <!-- Comune Navbar Menu -->
       <ul v-if="store.user?.tipo === 'comu'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
-          <router-link to="/comune/dashboard" active-class="active" class="font-medium">
-            📊 Dashboard
+          <router-link to="/comune/dashboard" active-class="active" class="font-medium flex items-center gap-2">
+             <LayoutDashboard class="w-4 h-4" />
+             {{ $t('nav.dashboard') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/comune/associazioni" active-class="active" class="font-medium">
-            🤝 Associazioni
+          <router-link to="/comune/associazioni" active-class="active" class="font-medium flex items-center gap-2">
+             <Handshake class="w-4 h-4" />
+             {{ $t('nav.associations') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/comune/mappa" active-class="active" class="font-medium">
-            🗺️ Mappa
+          <router-link to="/comune/mappa" active-class="active" class="font-medium flex items-center gap-2">
+             <Map class="w-4 h-4" />
+             {{ $t('nav.map') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/comune/avvisi" active-class="active" class="font-medium">
-            📢 Avvisi
+          <router-link to="/comune/avvisi" active-class="active" class="font-medium flex items-center gap-2">
+             <Megaphone class="w-4 h-4" />
+             {{ $t('nav.comune_notices') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/comune/bandi" active-class="active" class="font-medium">
-            📜 Bandi
+          <router-link to="/comune/bandi" active-class="active" class="font-medium flex items-center gap-2">
+             <ScrollText class="w-4 h-4" />
+             {{ $t('nav.tenders') }}
           </router-link>
         </li>
       </ul>
@@ -77,37 +96,63 @@ const logout = () => {
       <!-- Associazione Navbar Menu -->
       <ul v-if="store.user?.tipo === 'asso'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
-          <router-link to="/associazione/dashboard" active-class="active" class="font-medium">
-            📊 Dashboard
+          <router-link to="/associazione/dashboard" active-class="active" class="font-medium flex items-center gap-2">
+             <LayoutDashboard class="w-4 h-4" />
+             {{ $t('nav.dashboard') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/associazione/orti" active-class="active" class="font-medium">
-            🌿 Orti
+          <router-link to="/associazione/orti" active-class="active" class="font-medium flex items-center gap-2">
+             <Sprout class="w-4 h-4" />
+             {{ $t('nav.gardens') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/associazione/avvisi" active-class="active" class="font-medium">
-            🔔 Avvisi
+          <router-link to="/associazione/avvisi" active-class="active" class="font-medium flex items-center gap-2">
+             <Bell class="w-4 h-4" />
+             {{ $t('nav.notices') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/associazione/bandi" active-class="active" class="font-medium">
-            📜 Bandi
+          <router-link to="/associazione/bandi" active-class="active" class="font-medium flex items-center gap-2">
+             <ScrollText class="w-4 h-4" />
+             {{ $t('nav.tenders') }}
           </router-link>
         </li>
         <li>
-          <router-link to="/associazione/richieste" active-class="active" class="font-medium">
-            📨 Richieste
+          <router-link to="/associazione/richieste" active-class="active" class="font-medium flex items-center gap-2">
+             <Inbox class="w-4 h-4" />
+             {{ $t('nav.requests') }}
           </router-link>
         </li>
       </ul>
     </div>
 
-    <!--Logout-->
+    <!--Profile & Language Dropdown-->
     <div class="flex-none gap-4">
-      <div v-if="store.isAuthenticated" class="flex items-center gap-4">
-        <button @click="logout" class="btn btn-sm btn-error text-white hidden md:inline-flex">Logout</button>
+      <div v-if="store.isAuthenticated" class="dropdown dropdown-end hidden md:inline-flex">
+        <router-link to="/profile">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-full w-10">
+              <span class="text-xl">{{ store.user?.nome ? store.user.nome.charAt(0).toUpperCase() : 'U' }}</span>
+            </div>
+          </div>
+        </router-link>
+        <!-- <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+          <li>
+            {{ $t('general.profile') }}
+          </li>
+          <li>
+            <details open>
+              <summary>{{ $t('general.language') }}</summary>
+              <ul>
+                <li><a @click="changeLanguage('it')" :class="{ active: locale === 'it' }">Italiano</a></li>
+                <li><a @click="changeLanguage('en')" :class="{ active: locale === 'en' }">English</a></li>
+                <li><a @click="changeLanguage('de')" :class="{ active: locale === 'de' }">Deutsch</a></li>
+              </ul>
+            </details>
+          </li>
+        </ul> -->
       </div>
     </div>
   </div>
@@ -141,11 +186,11 @@ const logout = () => {
               <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/>
             </svg>
           </router-link>
-          <button type="button" aria-label="Logout" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#95d095] flex items-center justify-center shadow-md hover:bg-[#a5daa5] active:scale-95 transition-all duration-150" @click="logout">
+          <router-link to="/profile" aria-label="Profilo" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#95d095] flex items-center justify-center shadow-md hover:bg-[#a5daa5] active:scale-95 transition-all duration-150">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 fill-white" aria-hidden="true">
               <path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5ZM5 20a7 7 0 0 1 14 0 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"/>
             </svg>
-          </button>
+          </router-link>
         </div>
       </div>
 
@@ -162,53 +207,53 @@ const logout = () => {
     <!-- Comune Dock -->
     <template v-if="store.user?.tipo === 'comu'">
       <router-link to="/comune/dashboard" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">📊</span>
-        <span class="text-[10px] font-medium leading-none">Dash</span>
+        <LayoutDashboard class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.dash_short') }}</span>
       </router-link>
 
       <router-link to="/comune/associazioni" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">🤝</span>
-        <span class="text-[10px] font-medium leading-none">Assoc</span>
+        <Handshake class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.assoc_short') }}</span>
       </router-link>
 
       <router-link to="/comune/mappa" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">🗺️</span>
-        <span class="text-[10px] font-medium leading-none">Mappa</span>
+        <Map class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.map_short') }}</span>
       </router-link>
 
       <router-link to="/comune/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">📜</span>
-        <span class="text-[10px] font-medium leading-none">Bandi</span>
+        <ScrollText class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
       </router-link>
     </template>
 
     <!-- Associazione Dock -->
     <template v-if="store.user?.tipo === 'asso'">
       <router-link to="/associazione/dashboard" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">📊</span>
-        <span class="text-[10px] font-medium leading-none">Dash</span>
+        <LayoutDashboard class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.dash_short') }}</span>
       </router-link>
 
       <router-link to="/associazione/orti" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">🌿</span>
-        <span class="text-[10px] font-medium leading-none">Orti</span>
+        <Sprout class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.gardens_short') }}</span>
       </router-link>
 
       <router-link to="/associazione/richieste" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">📨</span>
-        <span class="text-[10px] font-medium leading-none">Richieste</span>
+        <Inbox class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.requests_short') }}</span>
       </router-link>
 
       <router-link to="/associazione/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
-        <span class="text-2xl mb-1">📜</span>
-        <span class="text-[10px] font-medium leading-none">Bandi</span>
+        <ScrollText class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
       </router-link>
     </template>
 
     <!-- Logout Action -->
     <button class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-red-50 text-error transition-colors" @click="logout">
-      <span class="text-2xl mb-1">🚪</span>
-      <span class="text-[10px] font-medium leading-none">Exit</span>
+      <LogOut class="w-6 h-6 mb-1" />
+      <span class="text-[10px] font-medium leading-none">{{ $t('general.exit') }}</span>
     </button>
 
   </div>
