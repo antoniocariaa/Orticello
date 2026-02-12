@@ -3,14 +3,15 @@ import { ref, computed, onMounted } from 'vue'
 import { store } from '@/store'
 import api from '@/services/api'
 import AvvisiBacheca from '@/components/AvvisiBacheca.vue'
-import { Plus, Pencil } from 'lucide-vue-next'
+import { Plus, Pencil, Megaphone } from 'lucide-vue-next'
 
 export default {
   name: 'AvvisiAssociazione',
   components: {
     AvvisiBacheca,
     Plus,
-    Pencil
+    Pencil,
+    Megaphone
   },
   setup() {
     const avvisiBachecaRef = ref(null)
@@ -180,6 +181,7 @@ export default {
       @add="openCreateModal"
       @edit="openEditModal"
       @delete="deleteAvviso"
+      :icon="Megaphone"
     />
     
     <!-- Modale per creare/modificare avviso -->
