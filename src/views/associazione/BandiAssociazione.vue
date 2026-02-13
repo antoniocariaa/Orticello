@@ -1,8 +1,11 @@
 ```html
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { FileText, Download, Calendar, Clock, MailX } from 'lucide-vue-next';
+
+const { t } = useI18n()
 
 
 const bandi = ref([])
@@ -105,10 +108,10 @@ const openModal = (bando) => {
                 
                 <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6 border-b pb-4">
                     <span class="flex items-center gap-1 bg-base-200 px-2 py-1 rounded">
-                        <Calendar class="w-4 h-4" /> Inizio: <b>{{ formatDate(selectedBando.data_inizio) }}</b>
+                        <Calendar class="w-4 h-4" /> {{ $t('association.tenders.from') }}: <b>{{ formatDate(selectedBando.data_inizio) }}</b>
                     </span>
                     <span class="flex items-center gap-1 bg-error/10 text-error px-2 py-1 rounded">
-                        <Clock class="w-4 h-4" /> Scadenza: <b>{{ formatDate(selectedBando.data_fine) }}</b>
+                        <Clock class="w-4 h-4" /> {{ $t('association.tenders.deadline_label') }} <b>{{ formatDate(selectedBando.data_fine) }}</b>
                     </span>
                 </div>
 
@@ -118,10 +121,10 @@ const openModal = (bando) => {
 
                 <div class="modal-action flex justify-between items-center">
                     <a v-if="selectedBando.link" :href="selectedBando.link" target="_blank" class="btn btn-primary btn-sm gap-2">
-                        <FileText class="w-4 h-4" /> Scarica Allegato
+                        <FileText class="w-4 h-4" /> {{ $t('modals.tenders.download_attachment') }}
                     </a>
                     <form method="dialog">
-                        <button class="btn btn-sm" @click="isModalOpen = false">Chiudi</button>
+                        <button class="btn btn-sm" @click="isModalOpen = false">{{ $t('general.close') }}</button>
                     </form>
                 </div>
             </template>

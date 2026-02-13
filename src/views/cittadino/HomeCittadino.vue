@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import { 
@@ -8,6 +9,7 @@ import {
   CheckCircle, XCircle, Handshake, Mail, Phone 
 } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const router = useRouter()
 const loading = ref(true)
 const assignment = ref(null) 
@@ -191,7 +193,7 @@ onMounted(fetchData)
                 <div class="card bg-base-100 shadow-xl border border-base-200">
                     <div class="card-body">
                         <h3 class="card-title text-secondary text-lg flex items-center gap-2">
-                            <Handshake class="w-5 h-5" /> Gestito da
+                            <Handshake class="w-5 h-5" /> {{ $t('citizen.home.managed_by') }}
                         </h3>
                         <div v-if="associationDetails">
                             <div class="font-bold text-xl mb-1">{{ associationDetails.nome }}</div>

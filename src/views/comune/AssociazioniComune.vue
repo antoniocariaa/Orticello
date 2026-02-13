@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onMounted} from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { Plus, Mail, Phone, FileText, MapPin, Sprout, Handshake } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const associazioni = ref([])
 const affidamenti = ref([])
@@ -28,7 +31,7 @@ const fetchData = async () => {
 
     } catch (e) {
         console.error('Error fetching data:', e)
-        error.value = 'Impossibile caricare i dati. Riprova più tardi.'
+        error.value = t('comune.home.error_loading')
     } finally {
         loading.value = false
     }
@@ -86,19 +89,19 @@ const openAddModal = () => {
 const createAssociazione = async () => {
     // Basic validation
     if (!newAssociazione.value.nome || !newAssociazione.value.indirizzo || !newAssociazione.value.telefono || !newAssociazione.value.email) {
-        showToast('Compila tutti i campi obbligatori.', 'error')
+        showToast(t('comune.associations.fill_required'), 'error')
         return
     }
 
     isSubmitting.value = true
     try {
         await api.post('/associazioni', newAssociazione.value)
-        showToast('Associazione creata con successo!', 'success')
+        showToast(t('comune.associations.created_success'), 'success')
         isAddModalOpen.value = false
         fetchData() // Refresh list
     } catch (e) {
         console.error('Error creating association:', e)
-        showToast(e.message || 'Errore durante la creazione.', 'error')
+        showToast(e.message || t('comune.associations.creation_error'), 'error')
     } finally {
         isSubmitting.value = false
     }
@@ -118,12 +121,12 @@ const showToast = (message, type = 'success') => {
     <div class="w-full max-w-6xl flex justify-between items-end">
         <div>
             <h1 class="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
-                <Handshake class="w-8 h-8" /> Associazioni
+                <Handshake class="w-8 h-8" /> {{ $t('comune.associations.title') }}
             </h1>
-            <p class="text-gray-600">Elenco delle associazioni registrate e dei loro orti gestiti.</p>
+            <p class="text-gray-600">{{ $t('comune.associations.subtitle') }}</p>
         </div>
         <button @click="openAddModal" class="btn btn-primary gap-2">
-            <Plus class="w-5 h-5" /> Aggiungi Associazione
+            <Plus class="w-5 h-5" /> {{ $t('comune.associations.add_association') }}
         </button>
     </div>
 
@@ -140,7 +143,7 @@ const showToast = (message, type = 'success') => {
 
     <!-- Empty State -->
     <div v-else-if="associazioni.length === 0" class="w-full max-w-6xl text-center py-12 bg-base-100 rounded-box shadow-sm border border-base-200">
-        <p class="text-lg opacity-60">Nessuna associazione trovata.</p>
+        <p class="text-lg opacity-60">{{ $t('comune.associations.no_associations') }}</p>
     </div>
 
     <!-- Grid Layout -->
@@ -173,7 +176,7 @@ const showToast = (message, type = 'success') => {
 
                 <div class="card-actions justify-end mt-4">
                     <button class="btn btn-sm btn-ghost hover:bg-primary hover:text-primary-content hover:border-primary transition-all gap-1 group">
-                        <span>Vedi Dettagli</span>
+                        <span>{{ $t('comune.associations.see_details') }}</span>
                         <span class="transition-transform group-hover:translate-x-1">→</span>
                     </button>                
                 </div>
@@ -194,23 +197,23 @@ const showToast = (message, type = 'success') => {
                     <div class="flex-1">
                         <h3 class="font-bold text-3xl text-primary">{{ selectedAssociazione.nome }}</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-4 text-sm">
-                            <div class="flex gap-2"><span class="font-semibold w-24">Email:</span> {{ selectedAssociazione.email || '-' }}</div>
-                            <div class="flex gap-2"><span class="font-semibold w-24">Telefono:</span> {{ selectedAssociazione.telefono || '-' }}</div>
-                            <div class="flex gap-2"><span class="font-semibold w-24">Cod. Fiscale:</span> {{ selectedAssociazione.codicefiscale || '-' }}</div>
-                            <div class="flex gap-2"><span class="font-semibold w-24">Indirizzo:</span> {{ selectedAssociazione.indirizzo || '-' }}</div>
+                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.email') }}</span> {{ selectedAssociazione.email || '-' }}</div>
+                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.phone') }}</span> {{ selectedAssociazione.telefono || '-' }}</div>
+                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.tax_id') }}</span> {{ selectedAssociazione.codicefiscale || '-' }}</div>
+                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.address') }}</span> {{ selectedAssociazione.indirizzo || '-' }}</div>
                         </div>
                     </div>
                 </div>
 
                 <div>
                     <h4 class="font-bold text-xl mb-4 flex items-center gap-2">
-                        <Sprout class="w-6 h-6 text-primary" /> Orti Gestiti
+                        <Sprout class="w-6 h-6 text-primary" /> {{ $t('comune.associations.managed_orti') }}
                         <span class="badge badge-primary badge-outline">{{ getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length }}</span>
                     </h4>
                     
                     <div v-if="getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length === 0" class="alert alert-info bg-base-200 border-none text-base-content/70">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>Nessun orto attualmente assegnato a questa associazione.</span>
+                        <span>{{ $t('comune.associations.no_managed_orti') }}</span>
                     </div>
 
                     <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -224,15 +227,15 @@ const showToast = (message, type = 'success') => {
                                 
                                 <div class="text-xs space-y-1">
                                     <div class="flex justify-between">
-                                        <span class="text-gray-500">Inizio Affidamento:</span>
+                                        <span class="text-gray-500">{{ $t('comune.associations.assignment_start') }}</span>
                                         <span class="font-medium">{{ formatDate(orto.assignment_start) }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-gray-500">Fine Affidamento:</span>
+                                        <span class="text-gray-500">{{ $t('comune.associations.assignment_end') }}</span>
                                         <span class="font-medium">{{ formatDate(orto.assignment_end) }}</span>
                                     </div>
                                     <div class="flex justify-between mt-2 pt-2 border-t border-base-200">
-                                         <span class="text-gray-500">Lotti Totali:</span>
+                                         <span class="text-gray-500">{{ $t('comune.associations.total_lots') }}</span>
                                          <span class="badge badge-sm badge-ghost">{{ orto.lotti?.length || 0 }}</span>
                                     </div>
                                 </div>
@@ -244,7 +247,7 @@ const showToast = (message, type = 'success') => {
             
             <div class="modal-action">
                 <form method="dialog">
-                    <button class="btn" @click="isModalOpen = false">Chiudi</button>
+                    <button class="btn" @click="isModalOpen = false">{{ $t('comune.associations.close') }}</button>
                 </form>
             </div>
         </div>
@@ -256,35 +259,35 @@ const showToast = (message, type = 'success') => {
     <!-- Add Association Modal -->
     <dialog class="modal" :class="{ 'modal-open': isAddModalOpen }">
         <div class="modal-box w-11/12 max-w-2xl bg-base-100">
-            <h3 class="font-bold text-2xl mb-6 text-center">Aggiungi Nuova Associazione</h3>
+            <h3 class="font-bold text-2xl mb-6 text-center">{{ $t('comune.associations.add_new_association') }}</h3>
             
             <form @submit.prevent="createAssociazione" class="flex flex-col gap-4">
                 <div class="form-control">
-                    <label class="label">Nome Associazione</label>
+                    <label class="label">{{ $t('comune.associations.association_name') }}</label>
                     <input v-model="newAssociazione.nome" type="text" class="input input-bordered w-full" placeholder="Es. Amici del Verde" required />
                 </div>
                 
                 <div class="form-control">
-                    <label class="label">Indirizzo</label>
+                    <label class="label">{{ $t('comune.associations.association_address') }}</label>
                     <input v-model="newAssociazione.indirizzo" type="text" class="input input-bordered w-full" placeholder="Via delle Piante 12" required />
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
-                        <label class="label">Telefono</label>
+                        <label class="label">{{ $t('comune.associations.association_phone') }}</label>
                         <input v-model="newAssociazione.telefono" type="tel" class="input input-bordered w-full" placeholder="333 1234567" required />
                     </div>
                     <div class="form-control">
-                        <label class="label">Email</label>
+                        <label class="label">{{ $t('comune.associations.association_email') }}</label>
                         <input v-model="newAssociazione.email" type="email" class="input input-bordered w-full" placeholder="info@associazione.it" required />
                     </div>
                 </div>
 
                 <div class="modal-action border-t border-base-200 pt-4 mt-4">
-                    <button type="button" @click="isAddModalOpen = false" class="btn btn-ghost">Annulla</button>
+                    <button type="button" @click="isAddModalOpen = false" class="btn btn-ghost">{{ $t('comune.associations.cancel') }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
                         <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
-                        {{ isSubmitting ? 'Salvataggio...' : 'Crea Associazione' }}
+                        {{ isSubmitting ? $t('comune.associations.creating') : $t('comune.associations.create') }}
                     </button>
                 </div>
             </form>

@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
+
+const { t } = useI18n()
 
 const orti = ref([])
 const pendingRequestsData = ref([]) // Solo pending dal backend
@@ -237,7 +240,7 @@ const dataByOrto = computed(() => {
 const confirmAccept = async () => {
     if (!requestToAccept.value) return
     if (!acceptanceEndDate.value) {
-        showToast('Devi selezionare una data di fine validità.', 'warning')
+        showToast(t('association.requests.select_end_date'), 'warning')
         return
     }
 
@@ -251,7 +254,7 @@ const confirmAccept = async () => {
             data_fine: acceptanceEndDate.value
         })
         
-        showToast('Richiesta accettata con successo!', 'success')
+        showToast(t('association.requests.request_accepted'), 'success')
         const modal = document.getElementById('accept_modal')
         if (modal) modal.close()
         refreshStorico() // Invalida lo storico
@@ -265,7 +268,7 @@ const confirmAccept = async () => {
 const handleReject = async (request) => {
     try {
         await api.put(`/affidaLotti/${request._id}/gestisci`, { azione: 'rifiuta' })
-        showToast('Richiesta rifiutata.', 'warning')
+        showToast(t('association.requests.request_rejected'), 'warning')
         refreshStorico() // Invalida lo storico
         await fetchData()
     } catch (e) {
@@ -283,7 +286,7 @@ const formatDate = (d) => {
 <template>
 <div class="p-6 min-h-[calc(100vh-64px)] w-full flex flex-col items-center gap-6">
     <div class="w-full max-w-6xl">
-        <h1 class="text-3xl font-bold text-primary mb-2">Gestione Richieste e Assegnazioni</h1>
+        <h1 class="text-3xl font-bold text-primary mb-2">{{ $t('association.requests.title') }}</h1>
     </div>
 
     <!-- Loading -->
@@ -291,8 +294,8 @@ const formatDate = (d) => {
 
     <!-- Empty State -->
     <div v-else-if="orti.length === 0" class="w-full max-w-6xl card bg-base-100 shadow-xl p-10 text-center opacity-70">
-        <h3 class="text-xl font-bold mb-2">Nessun orto assegnato</h3>
-        <p>Non ci sono orti gestiti dalla tua associazione al momento.</p>
+        <h3 class="text-xl font-bold mb-2">{{ $t('association.requests.no_gardens') }}</h3>
+        <p>{{ $t('association.requests.no_gardens_managed') }}</p>
     </div>
 
     <!-- List by Orto -->
@@ -310,7 +313,7 @@ const formatDate = (d) => {
                     </div>
                     <div class="stats shadow-sm">
                         <div class="stat p-3">
-                            <div class="stat-title text-xs">Pendenti</div>
+                            <div class="stat-title text-xs">{{ $t('association.requests.pending_count') }}</div>
                             <div class="stat-value text-xl text-warning">{{ data.pending.length }}</div>
                         </div>
                     </div>
@@ -322,16 +325,16 @@ const formatDate = (d) => {
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                         </svg>
-                        Richieste Pendenti ({{ data.pending.length }})
+                        {{ $t('association.requests.pending_requests') }} ({{ data.pending.length }})
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="table table-zebra w-full">
                             <thead>
                                 <tr>
-                                    <th>Data</th>
-                                    <th>Lotto</th>
-                                    <th>Richiedente</th>
-                                    <th class="text-right">Azioni</th>
+                                    <th>{{ $t('association.requests.date') }}</th>
+                                    <th>{{ $t('association.requests.lot') }}</th>
+                                    <th>{{ $t('association.requests.requester') }}</th>
+                                    <th class="text-right">{{ $t('general.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -353,11 +356,11 @@ const formatDate = (d) => {
                                         <div class="join">
                                             <button @click="openAcceptModal(req)" 
                                                     class="btn btn-sm btn-success join-item text-white">
-                                                Accetta
+                                                {{ $t('association.requests.accept') }}
                                             </button>
                                             <button @click="handleReject(req)" 
                                                     class="btn btn-sm btn-error join-item text-white">
-                                                Rifiuta
+                                                {{ $t('association.requests.reject') }}
                                             </button>
                                         </div>
                                     </td>
@@ -375,7 +378,7 @@ const formatDate = (d) => {
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                                 </svg>
-                                <span>Storico Assegnazioni</span>
+                                <span>{{ $t('association.requests.historical_assignments') }}</span>
                                 <span v-if="storicoLoadedForOrto[ortoId]" class="badge badge-sm badge-ghost">{{ data.storico.length }}</span>
                             </div>
                         </summary>
@@ -388,7 +391,7 @@ const formatDate = (d) => {
                             <!-- Empty State -->
                             <div v-else-if="storicoLoadedForOrto[ortoId] && data.storico.length === 0" 
                                  class="text-center py-8 opacity-50">
-                                <p>Nessuna assegnazione storica per questo orto</p>
+                                <p>{{ $t('association.requests.no_historical_assignments') }}</p>
                             </div>
                             
                             <!-- Storico Table -->
@@ -396,11 +399,11 @@ const formatDate = (d) => {
                                 <table class="table table-sm w-full">
                                     <thead>
                                         <tr>
-                                            <th>Data Richiesta</th>
-                                            <th>Lotto</th>
-                                            <th>Richiedente</th>
-                                            <th>Periodo</th>
-                                            <th>Stato</th>
+                                            <th>{{ $t('association.requests.request_date') }}</th>
+                                            <th>{{ $t('association.requests.lot') }}</th>
+                                            <th>{{ $t('association.requests.requester') }}</th>
+                                            <th>{{ $t('association.requests.period') }}</th>
+                                            <th>{{ $t('general.status') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -428,7 +431,7 @@ const formatDate = (d) => {
                                                     'badge-success': req.stato === 'accepted',
                                                     'badge-error': req.stato === 'rejected'
                                                 }">
-                                                    {{ req.stato === 'accepted' ? 'Accettata' : 'Rifiutata' }}
+                                                    {{ req.stato === 'accepted' ? $t('association.requests.accepted') : $t('association.requests.rejected') }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -442,7 +445,7 @@ const formatDate = (d) => {
                 <!-- Empty State per orto -->
                 <div v-if="data.pending.length === 0" 
                      class="text-center py-8 opacity-50">
-                    <p>Nessuna richiesta pendente per questo orto</p>
+                    <p>{{ $t('association.requests.no_pending_requests') }}</p>
                 </div>
             </div>
         </div>
@@ -451,28 +454,28 @@ const formatDate = (d) => {
     <!-- Accept Confirmation Modal -->
     <dialog id="accept_modal" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4 text-success">Accetta Richiesta</h3>
+            <h3 class="font-bold text-lg mb-4 text-success">{{ $t('association.requests.accept_request') }}</h3>
             
             <p class="mb-4">
-                Stai per assegnare il lotto a 
+                {{ $t('association.requests.assigning_lot') }} 
                 <span class="font-bold">
                     {{ requestToAccept?.userDetails?.nome || requestToAccept?.utente?.nome }} 
                     {{ requestToAccept?.userDetails?.cognome || requestToAccept?.utente?.cognome }}
                 </span>.
-                Questa azione rifiuterà automaticamente tutte le altre richieste pendenti per questo lotto.
+                {{ $t('association.requests.reject_warning') }}
             </p>
 
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">Data di Scadenza Affidamento</span>
+                    <span class="label-text">{{ $t('association.requests.expiry_date') }}</span>
                 </label>
                 <input type="date" v-model="acceptanceEndDate" class="input input-bordered w-full" />
             </div>
 
             <div class="modal-action">
                 <form method="dialog">
-                    <button class="btn btn-ghost mr-2">Annulla</button>
-                    <button class="btn btn-success text-white" @click.prevent="confirmAccept">Conferma Assegnazione</button>
+                    <button class="btn btn-ghost mr-2">{{ $t('general.cancel') }}</button>
+                    <button class="btn btn-success text-white" @click.prevent="confirmAccept">{{ $t('association.requests.confirm_assignment') }}</button>
                 </form>
             </div>
         </div>
@@ -481,34 +484,34 @@ const formatDate = (d) => {
     <!-- User Info Modal -->
     <dialog id="user_modal" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4 text-primary">Dettagli Utente</h3>
+            <h3 class="font-bold text-lg mb-4 text-primary">{{ $t('association.requests.user_details') }}</h3>
             
             <div v-if="selectedUser" class="flex flex-col gap-3">
                 <div class="flex items-center gap-2">
-                    <div class="font-semibold w-32">Nome:</div>
+                    <div class="font-semibold w-32">{{ $t('association.requests.name') }}</div>
                     <div>{{ selectedUser.nome }} {{ selectedUser.cognome }}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="font-semibold w-32">Email:</div>
+                    <div class="font-semibold w-32">{{ $t('association.requests.email') }}</div>
                     <div>{{ selectedUser.email }}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="font-semibold w-32">Telefono:</div>
+                    <div class="font-semibold w-32">{{ $t('association.requests.phone') }}</div>
                     <div>{{ selectedUser.telefono || '-' }}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="font-semibold w-32">Codice Fiscale:</div>
+                    <div class="font-semibold w-32">{{ $t('association.requests.tax_id') }}</div>
                     <div>{{ selectedUser.codicefiscale || '-' }}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="font-semibold w-32">Indirizzo:</div>
+                    <div class="font-semibold w-32">{{ $t('association.requests.address') }}</div>
                     <div>{{ selectedUser.indirizzo || '-' }}</div>
                 </div>
             </div>
 
             <div class="modal-action">
                 <form method="dialog">
-                    <button class="btn">Chiudi</button>
+                    <button class="btn">{{ $t('general.close') }}</button>
                 </form>
             </div>
         </div>

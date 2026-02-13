@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import { 
   Sprout, Grid, Users, Info, MapPin, Signal, SignalLow, Handshake 
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const orti = ref([])
 const affidamenti = ref([]) // AffidaOrto
@@ -346,7 +349,7 @@ const openUserModal = (userId) => {
              </div>
 
               <div class="modal-action">
-                  <button class="btn" @click="isDetailsModalOpen = false">Chiudi</button>
+                  <button class="btn" @click="isDetailsModalOpen = false">{{ $t('general.close') }}</button>
               </div>
           </div>
           <form method="dialog" class="modal-backdrop">
@@ -357,7 +360,7 @@ const openUserModal = (userId) => {
       <!-- USER INFO MODAL -->
       <dialog id="user_info_modal_home" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4 text-secondary">Profilo Cittadino</h3>
+            <h3 class="font-bold text-lg mb-4 text-secondary">{{ $t('modals.orti.citizen_profile') }}</h3>
             
             <div v-if="selectedUser" class="flex flex-col gap-4">
                 <div class="flex items-center gap-4">
@@ -376,15 +379,15 @@ const openUserModal = (userId) => {
                 
                 <div class="grid grid-cols-1 gap-4">
                     <div class="flex justify-between border-b pb-2">
-                        <span class="font-bold text-gray-600">Telefono:</span>
+                        <span class="font-bold text-gray-600">{{ $t('association.requests.phone') }}</span>
                         <span>{{ selectedUser.telefono || '-' }}</span>
                     </div>
                     <div class="flex justify-between border-b pb-2">
-                        <span class="font-bold text-gray-600">Codice Fiscale:</span>
+                        <span class="font-bold text-gray-600">{{ $t('association.requests.tax_id') }}</span>
                         <span>{{ selectedUser.codicefiscale || '-' }}</span>
                     </div>
                      <div class="flex justify-between border-b pb-2">
-                        <span class="font-bold text-gray-600">Indirizzo:</span>
+                        <span class="font-bold text-gray-600">{{ $t('association.requests.address') }}</span>
                         <span>{{ selectedUser.indirizzo || '-' }}</span>
                     </div>
                 </div>
@@ -392,7 +395,7 @@ const openUserModal = (userId) => {
 
             <div class="modal-action">
                 <form method="dialog">
-                    <button class="btn">Chiudi</button>
+                    <button class="btn">{{ $t('general.close') }}</button>
                 </form>
             </div>
         </div>
