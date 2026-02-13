@@ -8,7 +8,21 @@
   },
   "members": {
     "title": "Membri del Comune",
-    "no_members": "Nessun membro trovato."
+    "no_members": "Nessun membro trovato.",
+    "remove_role": "Rimuovi ruolo",
+    "remove_role_title": "Rimuovi ruolo Comune",
+    "remove_role_confirm": "Sei sicuro di voler rimuovere il ruolo di membro del Comune a {name}? L'utente diventerà un Cittadino.",
+    "remove_role_btn": "Rimuovi ruolo",
+    "remove_error": "Errore nella rimozione del ruolo",
+    "add_member": "Aggiungi Membro",
+    "add_member_title": "Aggiungi Membro al Comune",
+    "add_member_email": "Email dell'utente",
+    "add_member_email_placeholder": "Inserisci l'email dell'utente",
+    "add_member_admin": "Amministratore",
+    "add_member_btn": "Aggiungi",
+    "add_error": "Errore nell'aggiunta del membro",
+    "already_comune": "L'utente è già membro di un Comune",
+    "not_citizen": "L'utente non è un Cittadino e non può essere promosso"
   },
   "nav": {
     "your_garden": "Il tuo Orto",
@@ -141,7 +155,9 @@
     "member_added": "Membro aggiunto con successo",
     "member_removed": "Membro rimosso con successo",
     "coltura_added": "Coltura aggiunta con successo",
-    "coltura_removed": "Coltura rimossa con successo"
+    "coltura_removed": "Coltura rimossa con successo",
+    "comune_role_removed": "Ruolo del Comune rimosso con successo",
+    "comune_member_added": "Membro del Comune aggiunto con successo"
   },
   "notFound": {
     "orto": "Orto non trovato",

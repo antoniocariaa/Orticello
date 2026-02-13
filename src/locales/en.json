@@ -6,6 +6,24 @@
     "language": "Language",
     "exit": "Exit"
   },
+  "members": {
+    "title": "Comune Members",
+    "no_members": "No members found.",
+    "remove_role": "Remove role",
+    "remove_role_title": "Remove Comune Role",
+    "remove_role_confirm": "Are you sure you want to remove the Comune role from {name}? The user will become a Citizen.",
+    "remove_role_btn": "Remove role",
+    "remove_error": "Error removing role",
+    "add_member": "Add Member",
+    "add_member_title": "Add Comune Member",
+    "add_member_email": "User email",
+    "add_member_email_placeholder": "Enter the user's email",
+    "add_member_admin": "Administrator",
+    "add_member_btn": "Add",
+    "add_error": "Error adding member",
+    "already_comune": "User is already a Comune member",
+    "not_citizen": "User is not a Citizen and cannot be promoted"
+  },
   "nav": {
     "your_garden": "Your Garden",
     "search_garden": "Search Garden",
@@ -136,7 +154,9 @@
     "member_added": "Member added successfully",
     "member_removed": "Member removed successfully",
     "coltura_added": "Crop added successfully",
-    "coltura_removed": "Crop removed successfully"
+    "coltura_removed": "Crop removed successfully",
+    "comune_role_removed": "Comune role removed successfully",
+    "comune_member_added": "Comune member added successfully"
   },
   "notFound": {
     "orto": "Garden not found",
