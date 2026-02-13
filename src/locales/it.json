@@ -6,6 +6,10 @@
     "language": "Lingua",
     "exit": "Esci"
   },
+  "members": {
+    "title": "Membri del Comune",
+    "no_members": "Nessun membro trovato."
+  },
   "nav": {
     "your_garden": "Il tuo Orto",
     "search_garden": "Cerca Orto",
@@ -15,6 +19,7 @@
     "dashboard": "Dashboard",
     "associations": "Associazioni",
     "map": "Mappa",
+    "members": "Membri",
     "comune_notices": "Avvisi",
     "tenders": "Bandi",
     "tenders_short": "Bandi",

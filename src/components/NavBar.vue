@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { store } from '../store'
 import { 
   Sprout, Search, Info, Bell, LayoutDashboard, Handshake, Map, 
-  Megaphone, ScrollText, Inbox, LogOut
+  Megaphone, ScrollText, Inbox, LogOut, Users
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -80,9 +80,15 @@ const changeLanguage = (lang) => {
           </router-link>
         </li>
         <li>
-          <router-link to="/comune/avvisi" active-class="active" class="font-medium flex items-center gap-2">
+            <router-link to="/comune/avvisi" active-class="active" class="font-medium flex items-center gap-2">
              <Megaphone class="w-4 h-4" />
              {{ $t('nav.comune_notices') }}
+          </router-link>
+        </li>
+        <li v-if="store.user?.admin">
+          <router-link to="/comune/membri" active-class="active" class="font-medium flex items-center gap-2">
+             <Users class="w-4 h-4" />
+             {{ $t('nav.members') }}
           </router-link>
         </li>
         <li>
