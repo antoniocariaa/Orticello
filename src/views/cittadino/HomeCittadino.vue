@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import { 
@@ -8,6 +9,7 @@ import {
   CheckCircle, XCircle, Handshake, Mail, Phone 
 } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const router = useRouter()
 const loading = ref(true)
 const assignment = ref(null) 
@@ -120,13 +122,13 @@ onMounted(fetchData)
         <div class="hero-content text-center">
             <div class="max-w-md">
                 <h1 class="text-5xl font-bold text-primary flex justify-center items-center gap-4">
-                    Benvenuto! <Sprout class="w-12 h-12" />
+                    {{ $t('citizen.home.welcome') }} <Sprout class="w-12 h-12" />
                 </h1>
                 <p class="py-6 text-lg">
-                    Non hai ancora un orto assegnato. Inizia la tua avventura nel verde cercando un orto disponibile nel tuo comune.
+                    {{ $t('citizen.home.no_garden_assigned') }}
                 </p>
                 <button @click="router.push('/cittadino/cerca')" class="btn btn-primary btn-lg text-white shadow-lg animate-pulse gap-2">
-                    <Search class="w-6 h-6" /> Cerca un Orto
+                    <Search class="w-6 h-6" /> {{ $t('citizen.home.search_garden') }}
                 </button>
             </div>
         </div>
@@ -138,9 +140,9 @@ onMounted(fetchData)
         <!-- Header / Welcome -->
         <div class="text-center mb-4">
             <h1 class="text-3xl font-bold text-gray-800 flex justify-center items-center gap-2">
-                Il tuo Orto <Sprout class="w-8 h-8 text-primary" />
+                {{ $t('citizen.home.your_garden') }} <Sprout class="w-8 h-8 text-primary" />
             </h1>
-            <p class="text-gray-500">Gestisci la tua coltivazione e visualizza i dettagli.</p>
+            <p class="text-gray-500">{{ $t('citizen.home.manage_cultivation') }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -149,35 +151,35 @@ onMounted(fetchData)
             <div class="card bg-base-100 shadow-xl md:col-span-2 border-t-4 border-primary">
                 <div class="card-body">
                     <h2 class="card-title text-3xl">
-                        {{ ortoDetails?.nome || 'Orto Sconosciuto' }}
+                        {{ ortoDetails?.nome || $t('citizen.home.unknown_garden') }}
                     </h2>
                     <div class="flex items-center gap-2 text-gray-600 mb-4">
                         <MapPin class="w-5 h-5" />
-                        {{ ortoDetails?.indirizzo || 'Indirizzo non disponibile' }}
+                        {{ ortoDetails?.indirizzo || $t('citizen.home.address_unavailable') }}
                     </div>
 
-                    <div class="divider">Dettagli Lotto</div>
+                    <div class="divider">{{ $t('citizen.home.lot_details') }}</div>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title flex items-center gap-2"><Calendar class="w-4 h-4" /> Data Inizio</div>
+                            <div class="stat-title flex items-center gap-2"><Calendar class="w-4 h-4" /> {{ $t('citizen.home.start_date') }}</div>
                             <div class="stat-value text-lg">{{ formatDate(assignment.data_inizio) }}</div>
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title flex items-center gap-2"><Clock class="w-4 h-4" /> Scadenza</div>
-                            <div class="stat-value text-lg">{{ formatDate(assignment.data_fine) || 'Illimitata' }}</div>
+                            <div class="stat-title flex items-center gap-2"><Clock class="w-4 h-4" /> {{ $t('citizen.home.expiration') }}</div>
+                            <div class="stat-value text-lg">{{ formatDate(assignment.data_fine) || $t('citizen.home.unlimited') }}</div>
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title flex items-center gap-2"><Maximize class="w-4 h-4" /> Dimensione</div>
+                            <div class="stat-title flex items-center gap-2"><Maximize class="w-4 h-4" /> {{ $t('citizen.home.dimension') }}</div>
                             <div class="stat-value text-lg">
                                 {{ assignment.lotto?.dimensione || '-' }} mq
                             </div>
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title flex items-center gap-2"><Signal class="w-4 h-4" /> Sensori</div>
+                            <div class="stat-title flex items-center gap-2"><Signal class="w-4 h-4" /> {{ $t('citizen.home.sensors') }}</div>
                             <div class="stat-value text-lg flex items-center gap-2">
-                                <span v-if="assignment.lotto?.sensori" class="text-success flex items-center gap-1">Presenti <CheckCircle class="w-4 h-4" /></span>
-                                <span v-else class="text-error flex items-center gap-1">Assenti <XCircle class="w-4 h-4" /></span>
+                                <span v-if="assignment.lotto?.sensori" class="text-success flex items-center gap-1">{{ $t('citizen.home.present') }} <CheckCircle class="w-4 h-4" /></span>
+                                <span v-else class="text-error flex items-center gap-1">{{ $t('citizen.home.absent') }} <XCircle class="w-4 h-4" /></span>
                             </div>
                         </div>
                     </div>
@@ -191,7 +193,7 @@ onMounted(fetchData)
                 <div class="card bg-base-100 shadow-xl border border-base-200">
                     <div class="card-body">
                         <h3 class="card-title text-secondary text-lg flex items-center gap-2">
-                            <Handshake class="w-5 h-5" /> Gestito da
+                            <Handshake class="w-5 h-5" /> {{ $t('citizen.home.managed_by') }}
                         </h3>
                         <div v-if="associationDetails">
                             <div class="font-bold text-xl mb-1">{{ associationDetails.nome }}</div>
@@ -213,7 +215,7 @@ onMounted(fetchData)
                             </div>
                         </div>
                         <div v-else class="text-sm italic opacity-50">
-                            Informazioni associazione non disponibili.
+                            {{ $t('citizen.home.info_unavailable') }}
                         </div>
                     </div>
                 </div>

@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
 import { Search, Map, List, MapPin, Info, Check, X } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Trento
@@ -266,7 +269,7 @@ const requestLotto = async (lotto, orto) => {
         const user = store.user
         
         if (!user || (!user.id && !user._id)) {
-             showToast('Errore: Utente non identificato. Effettua il login.', 'error')
+             showToast(t('search.user_not_identified_toast'), 'error')
              return
         }
 
@@ -278,19 +281,19 @@ const requestLotto = async (lotto, orto) => {
         // Optimistic UI update or just feedback
         await api.post('/affidaLotti', payload)
         
-        showToast(`Richiesta inviata per il lotto in ${orto.nome}`, 'success')
+        showToast(t('search.request_sent_toast', { name: orto.nome }), 'success')
         await fetchAllAffidamenti() // Refresh requests to update UI
         isDetailsModalOpen.value = false
     } catch (e) {
         console.error('Request failed', e)
-        showToast('Errore durante la richiesta. Riprova più tardi.', 'error')
+        showToast(t('search.error_request_toast'), 'error')
     }
 }
 
 const checkAndRequest = (lotto, orto) => {
     // Check if I already requested THIS lotto
     if (hasRequested(lotto)) {
-         showToast('Richiesta già effettuata per questo Lotto', 'warning')
+         showToast(t('search.already_requested_toast'), 'warning')
          return
     }
 
@@ -307,7 +310,7 @@ const checkAndRequest = (lotto, orto) => {
     })
 
     if (hasActiveAssignment) {
-        showToast('Impossibile effettuare la richiesta. Possiedi già un Lotto', 'warning')
+        showToast(t('search.already_have_lot_toast'), 'warning')
         return
     }
 
@@ -323,21 +326,21 @@ const checkAndRequest = (lotto, orto) => {
       <div class="flex justify-between w-full max-w-5xl items-end">
            <div class="flex flex-col gap-3">
                <h1 class="text-3xl font-bold text-primary flex items-center gap-2">
-                Cerca Orto <Search class="w-8 h-8" />
+                {{ $t('search.title') }} <Search class="w-8 h-8" />
                </h1>
-               <p class="text-sm opacity-70">Esplora gli orti disponibili e visualizza i dettagli</p>
+               <p class="text-sm opacity-70">{{ $t('search.subtitle') }}</p>
                
                <div class="flex flex-wrap gap-4 items-center">
                    <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-green-500"></span> Disponibile
+                            <span class="w-3 h-3 rounded-full bg-green-500"></span> {{ $t('search.legend_available') }}
                         </div>
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-blue-500"></span> Il tuo Orto
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span> {{ $t('search.legend_your_garden') }}
                         </div>
                         <div class="flex items-center gap-1" v-if="myAssociazioneId">
-                            <span class="w-3 h-3 rounded-full bg-red-500"></span> Occupato
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span> {{ $t('search.legend_occupied') }}
                         </div>
                     </div>
 
@@ -348,14 +351,14 @@ const checkAndRequest = (lotto, orto) => {
                             :class="viewMode === 'map' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'map'"
                         >
-                            <Map class="w-4 h-4 mr-1" /> Mappa
+                            <Map class="w-4 h-4 mr-1" /> {{ $t('search.view_map') }}
                         </button>
                         <button 
                             class="btn btn-sm join-item" 
                             :class="viewMode === 'list' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'list'"
                         >
-                            <List class="w-4 h-4 mr-1" /> Lista
+                            <List class="w-4 h-4 mr-1" /> {{ $t('search.view_list') }}
                         </button>
                     </div>
                </div>
@@ -394,16 +397,16 @@ const checkAndRequest = (lotto, orto) => {
                              <MapPin class="w-3 h-3" /> {{ orto.indirizzo }}
                         </p>
 
-                        <div v-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white mb-2">La tua Associazione</div>
-                        <div v-else-if="isMyOrto(orto)" class="badge badge-info text-white mb-2">Il tuo Orto</div>
-                        <div v-else class="badge badge-success text-white mb-2">Disponibile</div>
+                        <div v-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white mb-2">{{ $t('search.your_assoc') }}</div>
+                        <div v-else-if="isMyOrto(orto)" class="badge badge-info text-white mb-2">{{ $t('search.legend_your_garden') }}</div>
+                        <div v-else class="badge badge-success text-white mb-2">{{ $t('search.legend_available') }}</div>
                         
                         <div class="flex gap-2 items-stretch mt-1 mb-2">
                             <div class="alert alert-sm bg-base-200 p-2 flex-1 flex items-center gap-1">
-                                 <span class="text-xs">Gestito da:</span>
+                                 <span class="text-xs">{{ $t('search.managed_by_label') }}</span>
                                  <span class="font-semibold text-sm">{{ getAssociazioneName(getAssignment(orto._id || orto.id)) }}</span>
                             </div>
-                            <div v-if="userHasActiveLotto" class="tooltip tooltip-left" data-tip="Possiedi già un lotto assegnato e non puoi effettuare altre richieste">
+                            <div v-if="userHasActiveLotto" class="tooltip tooltip-left" :data-tip="$t('search.active_request_tooltip')">
                                 <div class="alert alert-sm bg-base-200 p-2 h-full flex items-center justify-center cursor-help min-w-[2.5rem]">
                                     <Info class="w-5 h-5 text-warning" />
                                 </div>
@@ -412,17 +415,17 @@ const checkAndRequest = (lotto, orto) => {
                         
                         <!-- Lotti Details (solo se l'utente NON ha già un lotto) -->
                         <div v-if="!userHasActiveLotto">
-                            <div class="divider my-1">Lotti</div>
+                            <div class="divider my-1">{{ $t('search.lots') }}</div>
                             <div class="max-h-[200px] overflow-y-auto space-y-2">
-                                <div v-if="!orto.lotti || orto.lotti.length === 0" class="text-xs italic opacity-50">Nessun lotto</div>
+                                <div v-if="!orto.lotti || orto.lotti.length === 0" class="text-xs italic opacity-50">{{ $t('search.no_lots') }}</div>
                                 <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-base-100 p-2 rounded text-xs border border-base-200 shadow-sm">
                                     <div class="flex justify-between items-start mb-1">
-                                        <div class="font-bold">Lotto #{{ idx + 1 }}</div>
+                                        <div class="font-bold">{{ $t('search.lot_num', { number: idx + 1 }) }}</div>
                                         <div class="badge badge-neutral badge-xs">{{ getLottoData(lotto).dimensione }} mq</div>
                                     </div>
                                     <div class="mb-2 flex justify-between items-center bg-base-100 rounded p-1">
-                                        <span class="flex items-center gap-1">Sensori: <Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" /><X v-else class="w-3 h-3 text-error" /></span>
-                                        <span v-if="isLottoOccupied(lotto)" class="badge badge-error badge-xs">Occupato</span>
+                                        <span class="flex items-center gap-1">{{ $t('search.sensors_label') }}<Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" /><X v-else class="w-3 h-3 text-error" /></span>
+                                        <span v-if="isLottoOccupied(lotto)" class="badge badge-error badge-xs">{{ $t('search.legend_occupied') }}</span>
                                     </div>
                                     <button 
                                         v-if="!isLottoOccupied(lotto)"
@@ -430,25 +433,25 @@ const checkAndRequest = (lotto, orto) => {
                                         class="btn btn-xs w-full"
                                         :class="hasRequested(lotto) ? 'btn-neutral opacity-50' : 'btn-primary'"
                                     >
-                                        Richiedi
+                                        {{ $t('search.request') }}
                                     </button>
                                     <button v-else class="btn btn-xs btn-disabled w-full opacity-50">
-                                        Non Disponibile
+                                        {{ $t('search.not_available') }}
                                     </button>
                                 </div>
                             </div>
                         </div>
                         <!-- Se è il suo orto, mostra solo il suo lotto -->
                         <div v-else-if="isMyOrto(orto)">
-                            <div class="divider my-1">Il tuo Lotto</div>
+                            <div class="divider my-1">{{ $t('search.your_lot') }}</div>
                             <div class="bg-blue-50 p-2 rounded text-xs border border-blue-200 shadow-sm">
                                 <div class="flex justify-between items-start mb-1">
-                                    <div class="font-bold text-blue-800">Il tuo Lotto</div>
+                                    <div class="font-bold text-blue-800">{{ $t('search.your_lot') }}</div>
                                     <div class="badge badge-info badge-xs">{{ getLottoData(getMyLottoFromOrto(orto)).dimensione }} mq</div>
                                 </div>
                                 <div class="mb-2 flex justify-between items-center text-blue-800">
-                                    <span class="flex items-center gap-1">Sensori: <Check v-if="getLottoData(getMyLottoFromOrto(orto)).sensori" class="w-3 h-3 text-success" /><X v-else class="w-3 h-3 text-error" /></span>
-                                    <span class="badge badge-success badge-xs">Assegnato</span>
+                                    <span class="flex items-center gap-1">{{ $t('search.sensors_label') }}<Check v-if="getLottoData(getMyLottoFromOrto(orto)).sensori" class="w-3 h-3 text-success" /><X v-else class="w-3 h-3 text-error" /></span>
+                                    <span class="badge badge-success badge-xs">{{ $t('search.assigned_badge') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -465,8 +468,8 @@ const checkAndRequest = (lotto, orto) => {
             <div class="card-body p-6 h-full flex flex-col">
                 <!-- Status Badge -->
                 <div class="mb-2">
-                    <span v-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white">La tua Associazione</span>
-                    <span v-else class="badge badge-success text-white">Disponibile</span>
+                    <span v-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white">{{ $t('search.your_assoc') }}</span>
+                    <span v-else class="badge badge-success text-white">{{ $t('search.legend_available') }}</span>
                 </div>
 
                 <!-- Title -->
@@ -482,7 +485,7 @@ const checkAndRequest = (lotto, orto) => {
 
                  <!-- Association -->
                 <div class="mb-3 p-2 bg-base-200 rounded text-sm">
-                     <span class="text-xs opacity-70">Gestito da:</span>
+                     <span class="text-xs opacity-70">{{ $t('search.managed_by_label') }}</span>
                      <div class="font-medium truncate">
                          {{ getAssociazioneName(getAssignment(orto._id || orto.id)) }}
                      </div>
@@ -491,23 +494,23 @@ const checkAndRequest = (lotto, orto) => {
                 <!-- Size Info & Details Button -->
                 <div class="mb-4 flex-grow">
                      <div v-if="userHasActiveLotto" class="flex items-center justify-center gap-2 p-3 bg-base-200 rounded-lg">
-                         <div class="tooltip" data-tip="Possiedi già un lotto assegnato e non puoi effettuare altre richieste">
+                         <div class="tooltip" :data-tip="$t('search.active_request_tooltip')">
                              <Info class="w-6 h-6 text-warning cursor-help" />
                          </div>
-                         <span class="text-xs opacity-70 text-center">Lotti non disponibili</span>
+                         <span class="text-xs opacity-70 text-center">{{ $t('search.no_lots_available') }}</span>
                      </div>
                      <div v-else class="flex flex-col gap-2">
                          <div class="flex justify-between items-center text-sm font-medium">
-                             <span>Dimensione Totale:</span>
+                             <span>{{ $t('search.total_size') }}</span>
                              <span class="badge badge-neutral">{{ getTotalSize(orto) }} mq</span>
                          </div>
                          <div class="flex justify-between items-center text-sm font-medium opacity-70">
-                             <span>Lotti:</span>
+                             <span>{{ $t('search.lots_count') }}</span>
                              <span>{{ orto.lotti?.length || 0 }}</span>
                          </div>
                      
                          <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4 gap-2">
-                             <Search class="w-4 h-4" /> Dettagli Lotti
+                             <Search class="w-4 h-4" /> {{ $t('search.details_lots') }}
                          </button>
                      </div>
                 </div>
@@ -515,7 +518,7 @@ const checkAndRequest = (lotto, orto) => {
           </div>
           
            <div v-if="filteredOrti.length === 0" class="col-span-full text-center py-10 opacity-50">
-              Nessun orto disponibile al momento.
+              {{ $t('search.no_orti_available') }}
           </div>
       </div>
 
@@ -523,7 +526,7 @@ const checkAndRequest = (lotto, orto) => {
       <dialog class="modal" :class="{ 'modal-open': isDetailsModalOpen }">
           <div class="modal-box">
               <h3 class="font-bold text-lg mb-4" v-if="selectedOrto">
-                  Lotti in {{ selectedOrto.nome }}
+                  {{ $t('search.lots_in', { name: selectedOrto.nome }) }}
               </h3>
               
               <div v-if="selectedOrto" class="overflow-x-auto">
@@ -531,9 +534,9 @@ const checkAndRequest = (lotto, orto) => {
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Dimensione</th>
-                            <th>Sensori</th>
-                            <th>Azione</th>
+                            <th>{{ $t('home.dimension') }}</th>
+                            <th>{{ $t('home.sensors') }}</th>
+                            <th>{{ $t('general.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -543,9 +546,9 @@ const checkAndRequest = (lotto, orto) => {
                             <td>
                                 <span v-if="getLottoData(lotto).sensori" class="text-success flex items-center gap-1">
                                     <Check class="w-4 h-4 mr-1" />
-                                    Sì
+                                    {{ $t('general.yes') }}
                                 </span>
-                                <span v-else class="text-gray-400 flex items-center gap-1"><X class="w-4 h-4" /> No</span>
+                                <span v-else class="text-gray-400 flex items-center gap-1"><X class="w-4 h-4" /> {{ $t('general.no') }}</span>
                             </td>
                             <td>
                                 <button
@@ -554,9 +557,9 @@ const checkAndRequest = (lotto, orto) => {
                                     :class="hasRequested(lotto) ? 'btn-neutral opacity-50' : 'btn-primary'"
                                     @click="checkAndRequest(lotto, selectedOrto)"
                                 >
-                                    Richiedi
+                                    {{ $t('search.request') }}
                                 </button>
-                                <span v-else class="badge badge-error badge-xs">Occupato</span>
+                                <span v-else class="badge badge-error badge-xs">{{ $t('search.legend_occupied') }}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -564,7 +567,7 @@ const checkAndRequest = (lotto, orto) => {
              </div>
 
               <div class="modal-action">
-                  <button class="btn" @click="isDetailsModalOpen = false">Chiudi</button>
+                  <button class="btn" @click="isDetailsModalOpen = false">{{ $t('general.close') }}</button>
               </div>
           </div>
           <form method="dialog" class="modal-backdrop">

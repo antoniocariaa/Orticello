@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../../services/api';
+
+const { t } = useI18n();
 
 const bandi = ref([]);
 const isModalOpen = ref(false);
@@ -129,9 +132,9 @@ onMounted(() => {
 <template>
   <div class="container mx-auto p-4">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-0">
-      <h1 class="text-3xl font-bold text-primary">Gestione Bandi</h1>
+      <h1 class="text-3xl font-bold text-primary">{{ $t('comune.tenders.title') }}</h1>
       <button @click="openModal()" class="btn btn-primary w-full sm:w-auto">
-        + Nuovo Bando
+        + {{ $t('comune.tenders.new_tender') }}
       </button>
     </div>
 
@@ -142,14 +145,14 @@ onMounted(() => {
         :class="{ 'tab-active': activeTab === 'attivi' }"
         @click="activeTab = 'attivi'"
       >
-        Attivi
+        {{ $t('comune.tenders.active') }}
       </a>
       <a 
         class="tab" 
         :class="{ 'tab-active': activeTab === 'scaduti' }"
         @click="activeTab = 'scaduti'"
       >
-        Scaduti
+        {{ $t('comune.tenders.expired') }}
       </a>
     </div>
 
@@ -170,8 +173,8 @@ onMounted(() => {
             </p>
             <p class="truncate">{{ bando.messaggio }}</p>
             <div class="card-actions justify-end mt-4">
-              <button @click.stop="openModal(bando)" class="btn btn-sm btn-ghost">Modifica</button>
-              <button @click.stop="confirmDelete(bando)" class="btn btn-sm btn-error text-white">Elimina</button>
+              <button @click.stop="openModal(bando)" class="btn btn-sm btn-ghost">{{ $t('comune.tenders.edit') }}</button>
+              <button @click.stop="confirmDelete(bando)" class="btn btn-sm btn-error text-white">{{ $t('comune.tenders.delete') }}</button>
             </div>
           </div>
         </div>
@@ -179,7 +182,7 @@ onMounted(() => {
 
       <!-- Empty State for Active Bandi -->
       <div v-if="activeBandi.length === 0" class="text-center py-10">
-        <p class="text-gray-500 text-lg">Nessun bando attivo presente.</p>
+        <p class="text-gray-500 text-lg">{{ $t('comune.tenders.no_active') }}</p>
       </div>
     </div>
 
@@ -205,7 +208,7 @@ onMounted(() => {
       
        <!-- Empty State for Expired Bandi -->
       <div v-if="expiredBandi.length === 0" class="text-center py-10">
-        <p class="text-gray-500 text-lg">Nessun bando scaduto presente.</p>
+        <p class="text-gray-500 text-lg">{{ $t('comune.tenders.no_expired') }}</p>
       </div>
     </div>
 
@@ -213,25 +216,25 @@ onMounted(() => {
     <!-- Modal creazone/modifica -->
     <div v-if="isModalOpen" class="modal modal-open">
       <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'Modifica Bando' : 'Nuovo Bando' }}</h3>
+        <h3 class="font-bold text-lg mb-4">{{ isEditing ? $t('comune.tenders.edit_tender') : $t('comune.tenders.new_tender_title') }}</h3>
         
         <div class="form-control w-full mb-4">
           <label class="label">
-            <span class="label-text">Titolo</span>
+            <span class="label-text">{{ $t('comune.tenders.title') }}</span>
           </label>
-          <input type="text" v-model="currentBando.titolo" placeholder="Es. Bando assegnazione orti 2025" class="input input-bordered w-full" />
+          <input type="text" v-model="currentBando.titolo" :placeholder="$t('comune.tenders.title_placeholder')" class="input input-bordered w-full" />
         </div>
 
         <div class="flex gap-4 mb-4">
           <div class="form-control w-1/2">
             <label class="label">
-              <span class="label-text">Data Inizio</span>
+              <span class="label-text">{{ $t('comune.tenders.start_date') }}</span>
             </label>
             <input type="date" v-model="currentBando.data_inizio" class="input input-bordered w-full" />
           </div>
           <div class="form-control w-1/2">
             <label class="label">
-              <span class="label-text">Data Fine</span>
+              <span class="label-text">{{ $t('comune.tenders.end_date') }}</span>
             </label>
             <input type="date" v-model="currentBando.data_fine" class="input input-bordered w-full" />
           </div>
@@ -239,21 +242,21 @@ onMounted(() => {
 
         <div class="form-control w-full mb-4">
           <label class="label">
-            <span class="label-text">Messaggio</span>
+            <span class="label-text">{{ $t('comune.tenders.message') }}</span>
           </label>
-          <textarea v-model="currentBando.messaggio" class="textarea textarea-bordered h-24" placeholder="Dettagli del bando..."></textarea>
+          <textarea v-model="currentBando.messaggio" class="textarea textarea-bordered h-24" :placeholder="$t('comune.tenders.message_placeholder')"></textarea>
         </div>
 
         <div class="form-control w-full mb-6">
           <label class="label">
-            <span class="label-text">Link (Opzionale)</span>
+            <span class="label-text">{{ $t('comune.tenders.link') }}</span>
           </label>
-          <input type="text" v-model="currentBando.link" placeholder="https://..." class="input input-bordered w-full" />
+          <input type="text" v-model="currentBando.link" :placeholder="$t('comune.tenders.link_placeholder')" class="input input-bordered w-full" />
         </div>
 
         <div class="modal-action">
-          <button @click="closeModal" class="btn">Annulla</button>
-          <button @click="saveBando" class="btn btn-primary">Salva</button>
+          <button @click="closeModal" class="btn">{{ $t('comune.tenders.cancel') }}</button>
+          <button @click="saveBando" class="btn btn-primary">{{ $t('comune.tenders.save') }}</button>
         </div>
       </div>
     </div>
@@ -264,14 +267,14 @@ onMounted(() => {
         <button @click="closeViewModal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
         <h3 class="font-bold text-xl text-primary mb-2">{{ bandoToView?.titolo }}</h3>
         <p class="text-sm text-gray-500 mb-4">
-          Dal {{ new Date(bandoToView?.data_inizio).toLocaleDateString() }} 
-          al {{ new Date(bandoToView?.data_fine).toLocaleDateString() }}
+          {{ $t('comune.tenders.from') }} {{ new Date(bandoToView?.data_inizio).toLocaleDateString() }} 
+          {{ $t('comune.tenders.to') }} {{ new Date(bandoToView?.data_fine).toLocaleDateString() }}
         </p>
         <div class="py-4 whitespace-pre-wrap break-words">{{ bandoToView?.messaggio }}</div>
         
         <div v-if="bandoToView?.link" class="mt-4">
           <a :href="bandoToView.link" target="_blank" class="btn btn-outline btn-primary btn-sm">
-            Visita Link Esterno
+            {{ $t('comune.tenders.visit_link') }}
           </a>
         </div>
       </div>
@@ -280,11 +283,11 @@ onMounted(() => {
     <!-- Modal conferma eliminazione -->
     <div v-if="isDeleteModalOpen" class="modal modal-open">
       <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4 text-error">Conferma Eliminazione</h3>
-        <p class="py-4">Sei sicuro di voler eliminare il bando "<strong>{{ bandoToDelete?.titolo }}</strong>"? Questa azione non può essere annullata.</p>
+        <h3 class="font-bold text-lg mb-4 text-error">{{ $t('comune.tenders.delete_confirm_title') }}</h3>
+        <p class="py-4">{{ $t('comune.tenders.delete_confirm_message', { title: bandoToDelete?.titolo }) }}</p>
         <div class="modal-action">
-          <button @click="closeDeleteModal" class="btn">Annulla</button>
-          <button @click="executeDelete" class="btn btn-error text-white">Elimina</button>
+          <button @click="closeDeleteModal" class="btn">{{ $t('comune.tenders.cancel') }}</button>
+          <button @click="executeDelete" class="btn btn-error text-white">{{ $t('comune.tenders.delete') }}</button>
         </div>
       </div>
     </div>
