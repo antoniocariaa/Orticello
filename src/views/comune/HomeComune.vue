@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import { 
   Building2, Globe, Users, AlertTriangle, Map, Sprout, Eye, Search, X 
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 const router = useRouter()
 
 // --- State ---
@@ -37,7 +40,7 @@ const fetchData = async () => {
         users.value = Array.isArray(resUsers) ? resUsers : (resUsers.data || [])
     } catch (e) {
         console.error('Errore caricamento dati dashboard', e)
-        error.value = 'Impossibile caricare i dati. Riprova più tardi.'
+        error.value = '$t("comune.home.error_loading")'
     } finally {
         loading.value = false
     }
@@ -159,9 +162,9 @@ const goToAssegna = (ortoId) => {
           <div>
               <div class="mb-6">
                   <h1 class="text-3xl font-bold text-secondary mb-1 flex items-center gap-2">
-                    Dashboard Comune <Building2 class="w-8 h-8" />
+                    {{ $t('comune.home.title') }} <Building2 class="w-8 h-8" />
                   </h1>
-                  <p class="text-gray-600 text-sm">Panoramica gestionale degli orti urbani.</p>
+                  <p class="text-gray-600 text-sm">{{ $t('comune.home.subtitle') }}</p>
               </div>
           </div>
 
@@ -177,7 +180,7 @@ const goToAssegna = (ortoId) => {
                       </svg>
                       <span>{{ error }}</span>
                   </div>
-                  <button class="btn btn-sm" @click="fetchData">Riprova</button>
+                  <button class="btn btn-sm" @click="fetchData">{{ $t('comune.home.retry') }}</button>
               </div>
           </div>
 
@@ -187,29 +190,29 @@ const goToAssegna = (ortoId) => {
                       <div class="stat-figure text-secondary">
                           <Globe class="w-8 h-8" />
                       </div>
-                      <div class="stat-title text-xs uppercase font-bold tracking-wider">Totale Orti</div>
+                      <div class="stat-title text-xs uppercase font-bold tracking-wider">{{ $t('comune.home.total_orti') }}</div>
                       <div class="stat-value text-secondary text-2xl">{{ totalOrti }}</div>
-                      <div class="stat-desc mt-1">Orti gestiti dal comune</div>
+                      <div class="stat-desc mt-1">{{ $t('comune.home.orti_managed') }}</div>
                   </div>
                   
                   <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
                       <div class="stat-figure text-primary">
                           <Users class="w-8 h-8" />
                       </div>
-                      <div class="stat-title text-xs uppercase font-bold tracking-wider">Associazioni</div>
+                      <div class="stat-title text-xs uppercase font-bold tracking-wider">{{ $t('comune.home.associations') }}</div>
                       <div class="stat-value text-primary text-2xl">{{ totalAssociazioni }}</div>
-                      <div class="stat-desc mt-1">Associazioni attive</div>
+                      <div class="stat-desc mt-1">{{ $t('comune.home.associations_active') }}</div>
                   </div>
 
                   <div class="stat bg-white shadow rounded-box border border-base-200 py-4">
                       <div class="stat-figure text-error">
                           <AlertTriangle class="w-8 h-8" />
                       </div>
-                      <div class="stat-title text-xs uppercase font-bold tracking-wider">Da Assegnare</div>
+                      <div class="stat-title text-xs uppercase font-bold tracking-wider">{{ $t('comune.home.to_assign') }}</div>
                       <div class="stat-value text-2xl" :class="ortiNonAssegnati > 0 ? 'text-error' : 'text-success'">
                           {{ ortiNonAssegnati }}
                       </div>
-                      <div class="stat-desc mt-1">Orti disponibili</div>
+                      <div class="stat-desc mt-1">{{ $t('comune.home.orti_available') }}</div>
                   </div>
               </div>
 
@@ -217,13 +220,13 @@ const goToAssegna = (ortoId) => {
                   
                   <div class="p-4 border-b border-base-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
                       <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
-                          <h2 class="text-lg font-bold text-gray-700 mr-4">Elenco Orti</h2>
+                          <h2 class="text-lg font-bold text-gray-700 mr-4">{{ $t('comune.home.orti_list') }}</h2>
                           
                           <div class="form-control">
                               <div class="input-group">
                                   <input 
                                       type="text" 
-                                      placeholder="Cerca nome o via..." 
+                                      :placeholder="$t('comune.home.search_placeholder')" 
                                       class="input input-bordered input-sm w-full max-w-xs" 
                                       v-model="searchQuery" 
                                   />
@@ -234,15 +237,15 @@ const goToAssegna = (ortoId) => {
                           </div>
 
                           <select class="select select-bordered select-sm" v-model="filterStatus">
-                              <option value="all">Tutti gli stati</option>
-                              <option value="free">Solo Liberi</option>
-                              <option value="assigned">Solo Affidati</option>
+                              <option value="all">{{ $t('comune.home.all_status') }}</option>
+                              <option value="free">{{ $t('comune.home.only_free') }}</option>
+                              <option value="assigned">{{ $t('comune.home.only_assigned') }}</option>
                           </select>
                       </div>
 
                       <div class="flex gap-2">
                           <router-link to="/comune/mappa" class="btn btn-outline btn-sm gap-2">
-                               <Map class="w-4 h-4" /> Mappa
+                               <Map class="w-4 h-4" /> {{ $t('comune.home.map') }}
                           </router-link>
                       </div>
                   </div>
@@ -251,11 +254,11 @@ const goToAssegna = (ortoId) => {
                       <table class="table w-full">
                           <thead class="bg-base-100 text-gray-600">
                               <tr>
-                                  <th>Nome Orto / Indirizzo</th>
-                                  <th class="text-center">Capacità</th>
-                                  <th>Stato</th>
-                                  <th>Gestione Attuale</th>
-                                  <th class="text-right">Azioni</th>
+                                  <th>{{ $t('comune.home.orto_address') }}</th>
+                                  <th class="text-center">{{ $t('comune.home.capacity') }}</th>
+                                  <th>{{ $t('comune.home.status') }}</th>
+                                  <th>{{ $t('comune.home.current_management') }}</th>
+                                  <th class="text-right">{{ $t('comune.home.actions') }}</th>
                               </tr>
                           </thead>
                           <tbody>
@@ -277,13 +280,13 @@ const goToAssegna = (ortoId) => {
 
                                   <td class="text-center">
                                       <span class="font-mono font-bold text-lg">{{ orto.lotti ? orto.lotti.length : 0 }}</span>
-                                      <span class="text-xs text-gray-400 block">Lotti</span>
+                                      <span class="text-xs text-gray-400 block">{{ $t('comune.home.lots') }}</span>
                                   </td>
 
                                   <td>
                                       <div class="badge gap-2" 
                                            :class="getCurrentAssignment(orto._id || orto.id) ? 'badge-success text-white' : 'badge-error text-white'">
-                                           {{ getCurrentAssignment(orto._id || orto.id) ? 'Affidato' : 'Libero' }}
+                                           {{ getCurrentAssignment(orto._id || orto.id) ? $t('comune.home.assigned') : $t('comune.home.free') }}
                                       </div>
                                   </td>
 
@@ -291,17 +294,17 @@ const goToAssegna = (ortoId) => {
                                       <div v-if="getCurrentAssignment(orto._id || orto.id)">
                                           <div class="font-semibold text-sm">{{ getAssociazioneName(orto._id || orto.id) }}</div>
                                           <div class="text-xs text-gray-500">
-                                              Scade: {{ formatDate(getCurrentAssignment(orto._id || orto.id).data_fine) }}
+                                              {{ $t('comune.home.expires') }} {{ formatDate(getCurrentAssignment(orto._id || orto.id).data_fine) }}
                                           </div>
                                       </div>
                                       <div v-else class="text-gray-400 text-sm italic">
-                                          - Nessun gestore -
+                                          {{ $t('comune.home.no_manager') }}
                                       </div>
                                   </td>
 
                                   <td class="text-right">
                                       <button class="btn btn-ghost btn-xs mr-2 gap-1" @click="openDetailsModal(orto)">
-                                          <Eye class="w-3 h-3" /> Dettagli
+                                          <Eye class="w-3 h-3" /> {{ $t('comune.home.details') }}
                                       </button>
                                   </td>
                               </tr>
@@ -310,7 +313,7 @@ const goToAssegna = (ortoId) => {
                                   <td colspan="5" class="text-center py-8 text-gray-500">
                                       <div class="flex flex-col items-center gap-2">
                                           <Search class="w-8 h-8 opacity-50" />
-                                          <span>Nessun orto trovato con i filtri attuali.</span>
+                                          <span>{{ $t('comune.home.no_orti_found') }}</span>
                                       </div>
                                   </td>
                               </tr>
@@ -320,12 +323,12 @@ const goToAssegna = (ortoId) => {
 
                   <div class="p-4 border-t border-base-200 flex justify-between items-center bg-gray-50">
                       <span class="text-xs text-gray-500">
-                          Mostrando {{ paginatedOrti.length }} di {{ filteredOrti.length }} orti
+                          {{ $t('comune.home.showing', { count: paginatedOrti.length, total: filteredOrti.length }) }}
                       </span>
                       <div class="btn-group">
                           <button class="btn btn-sm" :disabled="currentPage === 1" @click="currentPage--">«</button>
                           <button class="btn btn-sm no-animation bg-white hover:bg-white text-gray-700 cursor-default">
-                              Pagina {{ currentPage }} di {{ totalPages || 1 }}
+                              {{ $t('comune.home.page', { current: currentPage, total: totalPages || 1 }) }}
                           </button>
                           <button class="btn btn-sm" :disabled="currentPage >= totalPages" @click="currentPage++">»</button>
                       </div>
@@ -344,40 +347,40 @@ const goToAssegna = (ortoId) => {
                   <div v-if="selectedOrto" class="space-y-4">
                       <div class="grid grid-cols-2 gap-4">
                           <div class="bg-base-100 p-4 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Indirizzo</p>
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">{{ $t('comune.home.address') }}</p>
                               <p class="text-sm font-semibold">{{ selectedOrto.indirizzo }}</p>
                           </div>
                           <div class="bg-base-100 p-4 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Comune</p>
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">{{ $t('comune.home.municipality') }}</p>
                               <p class="text-sm font-semibold">{{ selectedOrto.comune || 'Trento' }}</p>
                           </div>
                           <div class="bg-base-100 p-4 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Lotti Totali</p>
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">{{ $t('comune.home.total_lots') }}</p>
                               <p class="text-2xl font-bold text-primary">{{ selectedOrto.lotti?.length || 0 }}</p>
                           </div>
                           <div class="bg-base-100 p-4 rounded-lg">
-                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">Stato</p>
+                              <p class="text-xs text-gray-500 uppercase font-bold mb-1">{{ $t('comune.home.status') }}</p>
                               <div class="badge badge-lg" :class="selectedAssignment ? 'badge-success' : 'badge-error'">
-                                  {{ selectedAssignment ? 'Affidato' : 'Libero' }}
+                                  {{ selectedAssignment ? $t('comune.home.assigned') : $t('comune.home.free') }}
                               </div>
                           </div>
                       </div>
 
                       <div v-if="selectedAssignment" class="alert alert-success shadow-sm">
                           <div class="w-full">
-                              <h4 class="font-bold text-lg mb-2">Affidamento Attivo</h4>
+                              <h4 class="font-bold text-lg mb-2">{{ $t('comune.home.active_assignment') }}</h4>
                               <div class="space-y-1">
-                                  <p><span class="font-semibold">Associazione:</span> {{ getAssociazioneName(selectedOrto._id || selectedOrto.id) }}</p>
-                                  <p><span class="font-semibold">Data Inizio:</span> {{ formatDate(selectedAssignment.data_inizio) }}</p>
-                                  <p><span class="font-semibold">Data Scadenza:</span> {{ formatDate(selectedAssignment.data_fine) }}</p>
+                                  <p><span class="font-semibold">{{ $t('comune.home.association') }}</span> {{ getAssociazioneName(selectedOrto._id || selectedOrto.id) }}</p>
+                                  <p><span class="font-semibold">{{ $t('comune.home.start_date') }}</span> {{ formatDate(selectedAssignment.data_inizio) }}</p>
+                                  <p><span class="font-semibold">{{ $t('comune.home.expiry_date') }}</span> {{ formatDate(selectedAssignment.data_fine) }}</p>
                               </div>
                           </div>
                       </div>
                       
                       <div v-else class="alert alert-warning shadow-sm">
                           <div>
-                              <h4 class="font-bold">Non Assegnato</h4>
-                              <p class="text-sm">Questo orto è libero. Puoi assegnarlo a un'associazione.</p>
+                              <h4 class="font-bold">{{ $t('comune.home.not_assigned') }}</h4>
+                              <p class="text-sm">{{ $t('comune.home.orto_free_message') }}</p>
                           </div>
                       </div>
                   </div>
@@ -387,9 +390,9 @@ const goToAssegna = (ortoId) => {
                           v-if="selectedOrto && !selectedAssignment" 
                           class="btn btn-secondary text-white"
                           @click="goToAssegna(selectedOrto._id || selectedOrto.id)">
-                          Assegna Orto
+                          {{ $t('comune.home.assign_orto') }}
                       </button>
-                      <button class="btn" @click="closeDetailsModal">Chiudi</button>
+                      <button class="btn" @click="closeDetailsModal">{{ $t('comune.home.close') }}</button>
                   </div>
               </div>
               <div class="modal-backdrop bg-black bg-opacity-50" @click="closeDetailsModal"></div>

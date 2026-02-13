@@ -76,15 +76,15 @@ export default {
       const errors = {}
       
       if (!formData.value.titolo.trim()) {
-        errors.titolo = 'Il titolo è obbligatorio'
+        errors.titolo = store.t('association.notices.title_mandatory')
       }
       
       if (!formData.value.messaggio.trim()) {
-        errors.messaggio = 'Il messaggio è obbligatorio'
+        errors.messaggio = store.t('association.notices.message_mandatory')
       }
       
       if (!formData.value.data) {
-        errors.data = 'La data è obbligatoria'
+        errors.data = store.t('association.notices.date_mandatory')
       }
       
       formErrors.value = errors
@@ -108,10 +108,10 @@ export default {
         
         if (modalMode.value === 'create') {
           await api.post('/avvisi', payload)
-          showToast('Avviso creato con successo!', 'success')
+          showToast(store.t('association.notices.notice_created'), 'success')
         } else {
           await api.put(`/avvisi/${currentAvviso.value._id}`, payload)
-          showToast('Avviso modificato con successo!', 'success')
+          showToast(store.t('association.notices.notice_updated'), 'success')
         }
         
         closeModal()
@@ -121,7 +121,7 @@ export default {
         }
       } catch (error) {
         console.error('Errore salvataggio avviso:', error)
-        showToast(error.message || 'Errore durante il salvataggio dell\'avviso', 'error')
+        showToast(error.message || store.t('association.notices.save_error'), 'error')
       } finally {
         loading.value = false
       }
@@ -129,14 +129,14 @@ export default {
     
     // Elimina avviso
     const deleteAvviso = async (avviso) => {
-      if (!confirm(`Sei sicuro di voler eliminare l'avviso "${avviso.titolo}"?`)) {
+      if (!confirm(store.t('association.notices.delete_confirm', { title: avviso.titolo }))) {
         return
       }
       
       loading.value = true
       try {
         await api.delete(`/avvisi/${avviso._id}`)
-        showToast('Avviso eliminato con successo!', 'success')
+        showToast(store.t('association.notices.notice_deleted'), 'success')
         
         // Ricarica gli avvisi
         if (avvisiBachecaRef.value) {
@@ -144,7 +144,7 @@ export default {
         }
       } catch (error) {
         console.error('Errore eliminazione avviso:', error)
-        showToast(error.message || 'Errore durante l\'eliminazione dell\'avviso', 'error')
+        showToast(error.message || store.t('association.notices.save_error'), 'error')
       } finally {
         loading.value = false
       }
@@ -174,8 +174,8 @@ export default {
     <!-- Componente bacheca avvisi con gestione -->
     <AvvisiBacheca 
       ref="avvisiBachecaRef"
-      title="Avvisi Associazione"
-      subtitle="Gestisci e visualizza gli avvisi della tua associazione"
+      :title="$t('association.notices.title')"
+      :subtitle="$t('association.notices.subtitle')"
       :canEdit="true"
       :showAddButton="true"
       @add="openCreateModal"
@@ -189,10 +189,10 @@ export default {
       <div class="modal-box max-w-2xl">
         <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
           <template v-if="modalMode === 'create'">
-              <Plus class="w-6 h-6" /> Nuovo Avviso
+              <Plus class="w-6 h-6" /> {{ $t('association.notices.new_notice') }}
           </template>
           <template v-else>
-              <Pencil class="w-6 h-6" /> Modifica Avviso
+              <Pencil class="w-6 h-6" /> {{ $t('association.notices.edit_notice') }}
           </template>
         </h3>
         
@@ -200,12 +200,12 @@ export default {
           <!-- Titolo -->
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Titolo *</span>
+              <span class="label-text">{{ $t('association.notices.title_required') }}</span>
             </label>
             <input 
               v-model="formData.titolo"
               type="text" 
-              placeholder="Inserisci il titolo dell'avviso" 
+              :placeholder="$t('association.notices.title_placeholder')" 
               class="input input-bordered"
               :class="{ 'input-error': formErrors.titolo }"
             />
@@ -217,12 +217,12 @@ export default {
           <!-- Categoria -->
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Categoria</span>
+              <span class="label-text">{{ $t('association.notices.category') }}</span>
             </label>
             <input 
               v-model="formData.categoria"
               type="text" 
-              placeholder="Es: Evento, Manutenzione, Comunicazione..." 
+              :placeholder="$t('association.notices.category_placeholder')" 
               class="input input-bordered"
             />
           </div>
@@ -230,7 +230,7 @@ export default {
           <!-- Data -->
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Data *</span>
+              <span class="label-text">{{ $t('association.notices.date_required') }}</span>
             </label>
             <input 
               v-model="formData.data"
@@ -246,11 +246,11 @@ export default {
           <!-- Messaggio -->
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Messaggio *</span>
+              <span class="label-text">{{ $t('association.notices.message_required') }}</span>
             </label>
             <textarea 
               v-model="formData.messaggio"
-              placeholder="Scrivi il contenuto dell'avviso..." 
+              :placeholder="$t('association.notices.message_placeholder')" 
               class="textarea textarea-bordered h-32"
               :class="{ 'textarea-error': formErrors.messaggio }"
             ></textarea>
@@ -267,7 +267,7 @@ export default {
               class="btn"
               :disabled="loading"
             >
-              Annulla
+              {{ $t('association.notices.cancel') }}
             </button>
             <button 
               type="submit" 
@@ -275,7 +275,7 @@ export default {
               :disabled="loading"
             >
               <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-              {{ modalMode === 'create' ? 'Crea Avviso' : 'Salva Modifiche' }}
+              {{ modalMode === 'create' ? $t('association.notices.create_notice') : $t('association.notices.save_changes') }}
             </button>
           </div>
         </form>

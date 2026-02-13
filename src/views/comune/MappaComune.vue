@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted} from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
 import { Map, List, Plus, MapPin, Pencil, Handshake, Trash2 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Coordinate Trento
@@ -182,7 +185,7 @@ const onMapClick = (event) => {
         form.value.lat = event.latlng.lat.toFixed(6)
         form.value.lng = event.latlng.lng.toFixed(6)
         isSelectingCoordinates.value = false
-        showToast('Coordinate selezionate dalla mappa', 'success')
+        showToast(t('comune.map.coords_selected'), 'success')
         isModalOpen.value = true;
     }
 }
@@ -190,7 +193,7 @@ const onMapClick = (event) => {
 const toggleCoordinateSelection = () => {
     isSelectingCoordinates.value = !isSelectingCoordinates.value
     if (isSelectingCoordinates.value) {
-        showToast('Clicca sulla mappa per selezionare le coordinate', 'success')
+        showToast(t('comune.map.coords_selecting'), 'success')
         isModalOpen.value = false;
     }
 }
@@ -207,7 +210,7 @@ const getAssociazioneName = (ortoId) => {
     // If only ID, find in associazioni list
     const assocId = assignment.associazione?._id || assignment.associazione
     const assoc = associazioni.value.find(a => (a._id || a.id) === assocId)
-    return assoc ? assoc.nome : 'Associazione sconosciuta'
+    return assoc ? assoc.nome : t('search.managed_by_label')
 }
 
 const saveOrto = async () => {
@@ -257,7 +260,7 @@ const saveOrto = async () => {
         // Handle Association / AffidaOrto
          if (form.value.associazione) {
             if (!form.value.data_inizio || !form.value.data_fine) {
-                throw new Error('Date inizio e fine obbligatorie per assegnare un\'associazione')
+                throw new Error(t('comune.map.dates_required'))
             }
 
             const existingAssignment = affidamenti.value.find(a => (a.orto === ortoId || a.orto?._id === ortoId))
@@ -281,12 +284,12 @@ const saveOrto = async () => {
         }
         
         isModalOpen.value = false
-        showToast(isEditMode.value ? 'Orto modificato con successo!' : 'Orto creato con successo!', 'success')
+        showToast(isEditMode.value ? t('comune.map.orto_updated') : t('comune.map.orto_created'), 'success')
         
         await Promise.all([fetchOrti(), fetchAffidamenti()])
     } catch (e) {
         console.error(e)
-        showToast('Errore durante il salvataggio: ' + e.message, 'error')
+        showToast(t('comune.map.error_saving') + e.message, 'error')
     } finally {
         loading.value = false
     }
@@ -298,16 +301,16 @@ const saveOrto = async () => {
       
       <div class="flex flex-col md:flex-row justify-between w-full max-w-5xl items-start md:items-end gap-4">
           <div class="flex flex-col gap-3 w-full md:w-auto">
-              <h1 class="text-3xl font-bold text-primary">Orti a Trento</h1>
+              <h1 class="text-3xl font-bold text-primary">{{ $t('comune.map.title') }}</h1>
               
               <div class="flex flex-wrap gap-4 items-center">
                   <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-red-500"></span> Assegnato
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span> {{ $t('comune.map.assigned') }}
                         </div>
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-green-500"></span> Libero
+                            <span class="w-3 h-3 rounded-full bg-green-500"></span> {{ $t('comune.map.free') }}
                         </div>
                     </div>
                   <!-- Toggle View -->
@@ -317,20 +320,20 @@ const saveOrto = async () => {
                         :class="viewMode === 'map' ? 'btn-active btn-neutral' : ''"
                         @click="viewMode = 'map'"
                     >
-                       <Map class="w-4 h-4 mr-1" /> Mappa
+                       <Map class="w-4 h-4 mr-1" /> {{ $t('comune.map.map') }}
                     </button>
                     <button 
                         class="btn btn-sm join-item" 
                         :class="viewMode === 'list' ? 'btn-active btn-neutral' : ''"
                         @click="viewMode = 'list'"
                     >
-                      <List class="w-4 h-4 mr-1" /> Lista
+                      <List class="w-4 h-4 mr-1" /> {{ $t('comune.map.list') }}
                     </button>
                   </div>
               </div>
           </div>
           <button @click="openAddModal" class="btn btn-primary gap-2 w-full md:w-auto">
-             <Plus class="w-5 h-5" /> Aggiungi Orto
+             <Plus class="w-5 h-5" /> {{ $t('comune.map.add_orto') }}
           </button>
       </div>
 
@@ -364,12 +367,12 @@ const saveOrto = async () => {
                         </p>
                          <div class="flex items-center gap-2 mb-3 text-xs">
                             <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-error text-white' : 'badge-success text-white'">
-                                {{ isAssigned(orto._id || orto.id) ? 'Assegnato' : 'Libero' }}
+                                {{ isAssigned(orto._id || orto.id) ? $t('comune.map.assigned') : $t('comune.map.free') }}
                             </span>
-                            <span class="badge badge-ghost badge-sm">Lotti: {{ orto.lotti?.length || 0 }}</span>
+                            <span class="badge badge-ghost badge-sm">{{ $t('comune.map.lots') }} {{ orto.lotti?.length || 0 }}</span>
                         </div>
                         <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning w-full gap-2">
-                            <Pencil class="w-3 h-3" /> Modifica
+                            <Pencil class="w-3 h-3" /> {{ $t('comune.map.edit') }}
                         </button>
                     </div>
                 </l-popup>
@@ -384,7 +387,7 @@ const saveOrto = async () => {
     <!-- Status Badge at Top -->
     <div class="mb-3">
       <span class="badge badge-sm" :class="isAssigned(orto._id || orto.id) ? 'badge-error text-white' : 'badge-success text-white'">
-        {{ isAssigned(orto._id || orto.id) ? 'Assegnato' : 'Libero' }}
+        {{ isAssigned(orto._id || orto.id) ? $t('comune.map.assigned') : $t('comune.map.free') }}
       </span>
     </div>
 
@@ -401,7 +404,7 @@ const saveOrto = async () => {
       </div>
       <div v-else class="flex items-center gap-2 text-sm text-gray-500">
         <Handshake class="w-4 h-4" />
-        <span class="italic">Nessuna</span>
+        <span class="italic">{{ $t('comune.map.no_association') }}</span>
       </div>
     </div>
     
@@ -414,21 +417,21 @@ const saveOrto = async () => {
     <!-- Lotti Badge -->
     <div class="mb-4">
       <div class="badge badge-ghost badge-sm">
-        Lotti: {{ orto.lotti?.length || 0 }}
+        {{ $t('comune.map.lots') }} {{ orto.lotti?.length || 0 }}
       </div>
     </div>
 
     <!-- Action Button -->
     <div class="card-actions justify-end">
       <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning gap-1">
-        <Pencil class="w-3 h-3" /> Modifica
+        <Pencil class="w-3 h-3" /> {{ $t('comune.map.edit') }}
       </button>
     </div>
   </div>
 </div>
           
           <div v-if="orti.length === 0" class="col-span-full text-center py-10 opacity-50">
-              Nessun orto presente.
+              {{ $t('comune.map.no_orti') }}
           </div>
       </div>
 
@@ -436,41 +439,41 @@ const saveOrto = async () => {
     <dialog class="modal" :class="{ 'modal-open': isModalOpen }">
         <div class="modal-box w-11/12 max-w-4xl bg-base-100">
             <h3 class="font-bold text-2xl mb-6 text-center">
-                {{ isEditMode ? 'Modifica Orto' : 'Aggiungi Nuovo Orto' }}
+                {{ isEditMode ? $t('comune.map.edit_orto') : $t('comune.map.add_new_orto') }}
             </h3>
             
             <form @submit.prevent="saveOrto" class="flex flex-col gap-6">
                 <!-- Orto Details -->
                 <div class="bg-base-200 p-4 rounded-box">
-                    <h4 class="font-semibold mb-2">Dettagli Orto</h4>
+                    <h4 class="font-semibold mb-2">{{ $t('comune.map.orto_details') }}</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-control">
-                            <label class="label">Nome</label>
-                            <input v-model="form.nome" type="text" class="input input-bordered w-full" placeholder="Es. Orto Urbano Nord" required />
+                            <label class="label">{{ $t('comune.map.name') }}</label>
+                            <input v-model="form.nome" type="text" class="input input-bordered w-full" :placeholder="$t('comune.map.name_placeholder')" required />
                         </div>
                         <div class="form-control">
-                            <label class="label">Indirizzo</label>
-                            <input v-model="form.indirizzo" type="text" class="input input-bordered w-full" placeholder="Via Garibaldi 10" required />
+                            <label class="label">{{ $t('comune.map.address') }}</label>
+                            <input v-model="form.indirizzo" type="text" class="input input-bordered w-full" :placeholder="$t('comune.map.address_placeholder')" required />
                         </div>
                         <div class="form-control">
-                            <label class="label">Latitudine</label>
-                            <input v-model="form.lat" type="number" step="any" class="input input-bordered w-full" placeholder="46.06787" required :class="{ 'input-success': isSelectingCoordinates }" />
+                            <label class="label">{{ $t('comune.map.latitude') }}</label>
+                            <input v-model="form.lat" type="number" step="any" class="input input-bordered w-full" :placeholder="$t('comune.map.latitude_placeholder')" required :class="{ 'input-success': isSelectingCoordinates }" />
                         </div>
                         <div class="form-control">
                             <label class="label flex justify-between items-center">
-                                <span>Longitudine</span>
+                                <span>{{ $t('comune.map.longitude') }}</span>
                                 <button type="button" @click="toggleCoordinateSelection" class="btn btn-xs btn-outline gap-1" :class="isSelectingCoordinates ? 'btn-success' : 'btn-neutral'">
                                     <MapPin class="w-3 h-3" />
-                                    {{ isSelectingCoordinates ? 'Clicca mappa' : 'Dalla mappa' }}
+                                    {{ isSelectingCoordinates ? $t('comune.map.click_map') : $t('comune.map.from_map') }}
                                 </button>
                             </label>
-                            <input v-model="form.lng" type="number" step="any" class="input input-bordered w-full" placeholder="11.12108" required :class="{ 'input-success': isSelectingCoordinates }" />
+                            <input v-model="form.lng" type="number" step="any" class="input input-bordered w-full" :placeholder="$t('comune.map.longitude_placeholder')" required :class="{ 'input-success': isSelectingCoordinates }" />
                         </div>
                         <!-- Association Selection -->
                         <div class="form-control md:col-span-2">
-                             <label class="label">Associazione (Opzionale)</label>
+                             <label class="label">{{ $t('comune.map.association_optional') }}</label>
                              <select v-model="form.associazione" class="select select-bordered w-full">
-                                 <option value="">Nessuna Associazione</option>
+                                 <option value="">{{ $t('comune.map.no_association') }}</option>
                                  <option v-for="assoc in associazioni" :key="assoc._id || assoc.id" :value="assoc._id || assoc.id">
                                      {{ assoc.nome }}
                                  </option>
@@ -479,11 +482,11 @@ const saveOrto = async () => {
                         
                         <!-- Dates for Association -->
                         <div v-if="form.associazione" class="form-control">
-                            <label class="label">Data Inizio Affidamento</label>
+                            <label class="label">{{ $t('comune.map.assignment_start') }}</label>
                             <input v-model="form.data_inizio" type="date" class="input input-bordered w-full" required />
                         </div>
                         <div v-if="form.associazione" class="form-control">
-                            <label class="label">Data Fine Affidamento</label>
+                            <label class="label">{{ $t('comune.map.assignment_end') }}</label>
                             <input v-model="form.data_fine" type="date" class="input input-bordered w-full" required />
                         </div>
                     </div>
@@ -494,14 +497,14 @@ const saveOrto = async () => {
                 <!-- Lotti Section -->
                 <div>
                      <div class="flex justify-between items-center mb-4">
-                        <h4 class="font-semibold">Lotti Disponibili</h4>
+                        <h4 class="font-semibold">{{ $t('comune.map.available_lots') }}</h4>
                         <button type="button" @click="addLotto" class="btn btn-sm btn-outline btn-success">
-                            + Aggiungi Lotto
+                            {{ $t('comune.map.add_lot') }}
                         </button>
                      </div>
                      
                      <div v-if="form.lotti.length === 0" class="text-center p-8 bg-base-200 rounded-lg text-base-content/50 italic">
-                         Nessun lotto aggiunto. Aggiungine almeno uno.
+                         {{ $t('comune.map.no_lots') }}
                      </div>
 
                     <div class="space-y-3">
@@ -510,12 +513,12 @@ const saveOrto = async () => {
                                 #{{ index + 1 }}
                             </div>
                             <div class="form-control flex-1 min-w-[150px]">
-                                <label class="label text-xs">Dimensione (mq)</label>
+                                <label class="label text-xs">{{ $t('comune.map.lot_dimension') }}</label>
                                 <input v-model="lotto.dimensione" type="number" class="input input-bordered input-sm w-full" required />
                             </div>
                             <div class="form-control flex-none pt-8">
                                 <label class="label cursor-pointer gap-2 border border-base-300 rounded-lg px-3 py-1 bg-base-100 hover:bg-base-200 transition-colors">
-                                    <span class="label-text font-medium">Sensori</span> 
+                                    <span class="label-text font-medium">{{ $t('comune.map.lot_sensors') }}</span> 
                                     <input v-model="lotto.sensori" type="checkbox" class="checkbox checkbox-sm checkbox-primary" />
                                 </label>
                             </div>
@@ -529,10 +532,10 @@ const saveOrto = async () => {
                 </div>
                 
                 <div class="modal-action border-t border-base-200 pt-4 mt-2">
-                    <button type="button" @click="isModalOpen = false" class="btn btn-ghost px-6">Annulla</button>
+                    <button type="button" @click="isModalOpen = false" class="btn btn-ghost px-6">{{ $t('comune.map.cancel') }}</button>
                     <button type="submit" class="btn btn-primary px-8" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        {{ loading ? 'Salvataggio...' : 'Salva' }}
+                        {{ loading ? $t('comune.map.saving') : $t('comune.map.save') }}
                     </button>
                 </div>
             </form>

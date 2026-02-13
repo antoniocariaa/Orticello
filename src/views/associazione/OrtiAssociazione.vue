@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import { Map, List, MapPin, Check, X } from 'lucide-vue-next'
 import L from 'leaflet'
+
+const { t } = useI18n()
 
 const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Trento
@@ -159,19 +162,19 @@ const viewMode = ref('map') // 'map' or 'list'
       <!-- Styled Header matching MappaComune -->
       <div class="flex justify-between w-full max-w-5xl items-end">
            <div class="flex flex-col gap-3">
-               <h1 class="text-3xl font-bold text-primary">Mappa Orti disponibili</h1>
+               <h1 class="text-3xl font-bold text-primary">{{ $t('association.gardens.title') }}</h1>
                
                <div class="flex flex-wrap gap-4 items-center">
                    <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-green-500"></span> Disponibile
+                            <span class="w-3 h-3 rounded-full bg-green-500"></span> {{ $t('association.gardens.available') }}
                         </div>
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-red-500"></span> Occupato
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span> {{ $t('association.gardens.occupied') }}
                         </div>
                         <div class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full bg-blue-500"></span> Tuo Orto
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span> {{ $t('association.gardens.your_garden') }}
                         </div>
                     </div>
 
@@ -182,14 +185,14 @@ const viewMode = ref('map') // 'map' or 'list'
                             :class="viewMode === 'map' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'map'"
                         >
-                            <Map class="w-4 h-4 mr-1" /> Mappa
+                            <Map class="w-4 h-4 mr-1" /> {{ $t('association.gardens.map') }}
                         </button>
                         <button 
                             class="btn btn-sm join-item" 
                             :class="viewMode === 'list' ? 'btn-active btn-neutral' : 'bg-base-100'"
                             @click="viewMode = 'list'"
                         >
-                            <List class="w-4 h-4 mr-1" /> Lista
+                            <List class="w-4 h-4 mr-1" /> {{ $t('association.gardens.list') }}
                         </button>
                     </div>
                </div>
@@ -230,17 +233,17 @@ const viewMode = ref('map') // 'map' or 'list'
 
                         <!-- Available -->
                         <div v-if="getStatus(orto._id || orto.id) === 'available'">
-                             <div class="badge badge-success text-white mb-2">Disponibile</div>
+                             <div class="badge badge-success text-white mb-2">{{ $t('association.gardens.available') }}</div>
                              
                              <!-- Lotti Details -->
-                             <div class="divider my-1">Lotti</div>
+                             <div class="divider my-1">{{ $t('association.gardens.lots') }}</div>
                              <div class="max-h-[150px] overflow-y-auto space-y-2">
-                                 <div v-if="!orto.lotti || orto.lotti.length === 0" class="text-xs italic opacity-50">Nessun lotto</div>
+                                 <div v-if="!orto.lotti || orto.lotti.length === 0" class="text-xs italic opacity-50">{{ $t('modals.orti.no_lots_available') }}</div>
                                  <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-base-200 p-2 rounded text-xs">
-                                     <div class="font-bold">Lotto #{{ idx + 1 }}</div>
-                                     <div>Dim: {{ getLottoData(lotto).dimensione }} mq</div>
+                                     <div class="font-bold">{{ $t('association.gardens.lot') }} #{{ idx + 1 }}</div>
+                                     <div>{{ $t('modals.orti.dimension_short') }} {{ getLottoData(lotto).dimensione }} mq</div>
                                      <div class="flex items-center gap-1">
-                                         Sensori: 
+                                         {{ $t('association.gardens.sensors') }}: 
                                          <Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" />
                                          <X v-else class="w-3 h-3 text-error" />
                                      </div>
@@ -250,16 +253,16 @@ const viewMode = ref('map') // 'map' or 'list'
 
                         <!-- Mine -->
                         <div v-else-if="getStatus(orto._id || orto.id) === 'mine'">
-                             <div class="badge badge-info text-white mb-2">Tuo Orto</div>
+                             <div class="badge badge-info text-white mb-2">{{ $t('association.gardens.your_garden') }}</div>
                              
                              <!-- Lotti Details -->
-                             <div class="divider my-1">I tuoi Lotti</div>
+                             <div class="divider my-1">{{ $t('association.gardens.your_lots') }}</div>
                              <div class="max-h-[150px] overflow-y-auto space-y-2">
                                  <div v-for="(lotto, idx) in orto.lotti" :key="idx" class="bg-blue-50 p-2 rounded text-xs border border-blue-100">
-                                     <div class="font-bold text-blue-800">Lotto #{{ idx + 1 }}</div>
-                                     <div>Dim: {{ getLottoData(lotto).dimensione }} mq</div>
+                                     <div class="font-bold text-blue-800">{{ $t('association.gardens.lot') }} #{{ idx + 1 }}</div>
+                                     <div>{{ $t('modals.orti.dimension_short') }} {{ getLottoData(lotto).dimensione }} mq</div>
                                      <div class="flex items-center gap-1">
-                                         Sensori: 
+                                         {{ $t('association.gardens.sensors') }}: 
                                          <Check v-if="getLottoData(lotto).sensori" class="w-3 h-3 text-success" />
                                          <X v-else class="w-3 h-3 text-error" />
                                      </div>
@@ -269,9 +272,9 @@ const viewMode = ref('map') // 'map' or 'list'
 
                         <!-- Other -->
                         <div v-else>
-                             <div class="badge badge-error text-white mb-2">Non Disponibile</div>
+                             <div class="badge badge-error text-white mb-2">{{ $t('modals.orti.not_available') }}</div>
                              <div class="alert alert-sm bg-base-200 p-2 mt-2">
-                                 <span class="text-xs">Assegnato a:</span>
+                                 <span class="text-xs">{{ $t('association.gardens.assigned_to') }}</span>
                                  <div class="font-semibold text-sm">
                                      {{ getAssociazioneName(getAssignment(orto._id || orto.id)) }}
                                  </div>
@@ -295,9 +298,9 @@ const viewMode = ref('map') // 'map' or 'list'
             <div class="card-body p-6 h-full flex flex-col">
                 <!-- Status Badge -->
                 <div class="mb-2">
-                    <span v-if="getStatus(orto._id || orto.id) === 'available'" class="badge badge-success text-white">Disponibile</span>
-                    <span v-else-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white">Tuo Orto</span>
-                    <span v-else class="badge badge-error text-white">Occupato</span>
+                    <span v-if="getStatus(orto._id || orto.id) === 'available'" class="badge badge-success text-white">{{ $t('association.gardens.available') }}</span>
+                    <span v-else-if="getStatus(orto._id || orto.id) === 'mine'" class="badge badge-info text-white">{{ $t('association.gardens.your_garden') }}</span>
+                    <span v-else class="badge badge-error text-white">{{ $t('association.gardens.occupied') }}</span>
                 </div>
 
                 <!-- Title -->
@@ -313,7 +316,7 @@ const viewMode = ref('map') // 'map' or 'list'
 
                  <!-- Association (If not available) -->
                 <div v-if="getStatus(orto._id || orto.id) === 'other'" class="mb-3 p-2 bg-base-200 rounded text-sm">
-                     <span class="text-xs opacity-70">Assegnato a:</span>
+                     <span class="text-xs opacity-70">{{ $t('association.gardens.assigned_to') }}</span>
                      <div class="font-medium truncate">
                          {{ getAssociazioneName(getAssignment(orto._id || orto.id)) }}
                      </div>
@@ -323,17 +326,17 @@ const viewMode = ref('map') // 'map' or 'list'
                 <div v-if="getStatus(orto._id || orto.id) !== 'other'" class="mb-4 flex-grow">
                      <div class="flex flex-col gap-2">
                          <div class="flex justify-between items-center text-sm font-medium">
-                             <span>Dimensione Totale:</span>
+                             <span>{{ $t('association.gardens.total_size') }}</span>
                              <span class="badge badge-neutral">{{ getTotalSize(orto) }} mq</span>
                          </div>
                          <div class="flex justify-between items-center text-sm font-medium opacity-70">
-                             <span>Lotti:</span>
+                             <span>{{ $t('association.gardens.lots') }}</span>
                              <span>{{ orto.lotti?.length || 0 }}</span>
                          </div>
                      </div>
                      
                      <button @click="openDetailsModal(orto)" class="btn btn-sm btn-outline w-full mt-4 flex items-center justify-center gap-2">
-                         <Search class="w-4 h-4" /> Dettagli Lotti
+                         <Search class="w-4 h-4" /> {{ $t('association.gardens.details') }}
                      </button>
                 </div>
 
@@ -345,7 +348,7 @@ const viewMode = ref('map') // 'map' or 'list'
           </div>
           
            <div v-if="orti.length === 0" class="col-span-full text-center py-10 opacity-50">
-              Nessun orto trovato.
+              {{ $t('association.gardens.not_found') }}
           </div>
       </div>
 
@@ -353,7 +356,7 @@ const viewMode = ref('map') // 'map' or 'list'
       <dialog class="modal" :class="{ 'modal-open': isDetailsModalOpen }">
           <div class="modal-box">
               <h3 class="font-bold text-lg mb-4" v-if="selectedOrto">
-                  Dettagli {{ selectedOrto.nome }}
+                  {{ $t('association.gardens.lots_in', { name: selectedOrto.nome }) }}
               </h3>
               
               <div v-if="selectedOrto" class="overflow-x-auto">
@@ -361,8 +364,8 @@ const viewMode = ref('map') // 'map' or 'list'
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Dimensione</th>
-                            <th>Sensori</th>
+                            <th>{{ $t('association.gardens.dimension') }}</th>
+                            <th>{{ $t('association.gardens.sensors') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -374,9 +377,9 @@ const viewMode = ref('map') // 'map' or 'list'
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
-                                    Sì
+                                    {{ $t('general.yes') }}
                                 </span>
-                                <span v-else class="text-gray-400">No</span>
+                                <span v-else class="text-gray-400">{{ $t('general.no') }}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -384,7 +387,7 @@ const viewMode = ref('map') // 'map' or 'list'
              </div>
 
               <div class="modal-action">
-                  <button class="btn" @click="isDetailsModalOpen = false">Chiudi</button>
+                  <button class="btn" @click="isDetailsModalOpen = false">{{ $t('association.gardens.close') }}</button>
               </div>
           </div>
           <form method="dialog" class="modal-backdrop">
