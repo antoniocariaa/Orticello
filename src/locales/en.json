@@ -24,6 +24,24 @@
     "already_comune": "User is already a Comune member",
     "not_citizen": "User is not a Citizen and cannot be promoted"
   },
+  "members_asso": {
+    "title": "Association Members",
+    "no_members": "No members found.",
+    "remove_role": "Remove role",
+    "remove_role_title": "Remove Association Role",
+    "remove_role_confirm": "Are you sure you want to remove the Association role from {name}? The user will become a Citizen.",
+    "remove_role_btn": "Remove role",
+    "remove_error": "Error removing role",
+    "add_member": "Add Member",
+    "add_member_title": "Add Association Member",
+    "add_member_email": "User email",
+    "add_member_email_placeholder": "Enter the user's email",
+    "add_member_admin": "Administrator",
+    "add_member_btn": "Add",
+    "add_error": "Error adding member",
+    "already_asso": "User is already an Association member",
+    "not_citizen": "User is not a Citizen and cannot be added"
+  },
   "nav": {
     "your_garden": "Your Garden",
     "search_garden": "Search Garden",
@@ -34,6 +52,8 @@
     "associations": "Associations",
     "map": "Map",
     "comune_notices": "Notices",
+    "members": "Members",
+    "members_short": "Members",
     "tenders": "Tenders",
     "tenders_short": "Tenders",
     "gardens": "Gardens",
@@ -156,7 +176,9 @@
     "coltura_added": "Crop added successfully",
     "coltura_removed": "Crop removed successfully",
     "comune_role_removed": "Comune role removed successfully",
-    "comune_member_added": "Comune member added successfully"
+    "comune_member_added": "Comune member added successfully",
+    "associazione_role_removed": "Association role removed successfully",
+    "associazione_member_added": "Association member added successfully"
   },
   "notFound": {
     "orto": "Garden not found",

@@ -6,12 +6,32 @@
     "language": "Sprache",
     "exit": "Verlassen"
   },
+  "members_asso": {
+    "title": "Vereinsmitglieder",
+    "no_members": "Keine Mitglieder gefunden.",
+    "remove_role": "Rolle entfernen",
+    "remove_role_title": "Vereinsrolle entfernen",
+    "remove_role_confirm": "Sind Sie sicher, dass Sie die Vereinsrolle von {name} entfernen möchten? Der Benutzer wird zum Bürger.",
+    "remove_role_btn": "Rolle entfernen",
+    "remove_error": "Fehler beim Entfernen der Rolle",
+    "add_member": "Mitglied hinzufügen",
+    "add_member_title": "Vereinsmitglied hinzufügen",
+    "add_member_email": "E-Mail des Benutzers",
+    "add_member_email_placeholder": "E-Mail des Benutzers eingeben",
+    "add_member_admin": "Administrator",
+    "add_member_btn": "Hinzufügen",
+    "add_error": "Fehler beim Hinzufügen des Mitglieds",
+    "already_asso": "Benutzer ist bereits Vereinsmitglied",
+    "not_citizen": "Benutzer ist kein Bürger und kann nicht hinzugefügt werden"
+  },
   "nav": {
     "your_garden": "Dein Garten",
     "search_garden": "Garten suchen",
     "info_garden": "Garten Info",
     "info_garden_tooltip": "Garten Info (Demnächst)",
     "notices": "Mitteilungen",
+    "members": "Mitglieder",
+    "members_short": "Mitgl.",
     "dashboard": "Dashboard",
     "associations": "Vereine",
     "map": "Karte",
@@ -136,7 +156,9 @@
     "member_added": "Mitglied erfolgreich hinzugefügt",
     "member_removed": "Mitglied erfolgreich entfernt",
     "coltura_added": "Kultur erfolgreich hinzugefügt",
-    "coltura_removed": "Kultur erfolgreich entfernt"
+    "coltura_removed": "Kultur erfolgreich entfernt",
+    "associazione_role_removed": "Vereinsrolle erfolgreich entfernt",
+    "associazione_member_added": "Vereinsmitglied erfolgreich hinzugefügt"
   },
   "notFound": {
     "orto": "Garten nicht gefunden",
