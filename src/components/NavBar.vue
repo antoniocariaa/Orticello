@@ -85,7 +85,7 @@ const changeLanguage = (lang) => {
              {{ $t('nav.comune_notices') }}
           </router-link>
         </li>
-        <li v-if="store.user?.admin">
+        <li>
           <router-link to="/comune/membri" active-class="active" class="font-medium flex items-center gap-2">
              <Users class="w-4 h-4" />
              {{ $t('nav.members') }}
@@ -236,6 +236,11 @@ const changeLanguage = (lang) => {
       <router-link to="/comune/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <ScrollText class="w-6 h-6 mb-1" />
         <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
+      </router-link>
+
+      <router-link to="/comune/membri" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
+        <Users class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.members_short') }}</span>
       </router-link>
     </template>
 
