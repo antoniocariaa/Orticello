@@ -8,6 +8,7 @@ import {
   Sprout, Search, MapPin, Calendar, Clock, Maximize, Signal, 
   CheckCircle, XCircle, Handshake, Mail, Phone 
 } from 'lucide-vue-next'
+import WeatherCard from '../../components/WeatherCard.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -219,6 +220,12 @@ onMounted(fetchData)
                         </div>
                     </div>
                 </div>
+
+                <!-- Weather Card -->
+                <WeatherCard 
+                    v-if="ortoDetails?.geometry?.coordinates" 
+                    :coordinates="ortoDetails.geometry.coordinates" 
+                />
 
             </div>
 
