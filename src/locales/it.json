@@ -424,7 +424,22 @@
       "present": "Presenti",
       "absent": "Assenti",
       "managed_by": "Gestito da",
-      "info_unavailable": "Informazioni non disponibili."
+      "info_unavailable": "Informazioni non disponibili.",
+      "weather_title": "Meteo del tuo Orto",
+      "weather_loading": "Caricamento dati meteo...",
+      "weather_no_data": "Nessun dato meteo disponibile nelle vicinanze.",
+      "weather_error": "Errore nel caricamento dei dati meteo.",
+      "weather_last_update": "Ultimo aggiornamento",
+      "weather_station": "Stazione meteo",
+      "weather_reading": "Rilevamento",
+      "weather_humidity": "Umidità",
+      "weather_wind": "Vento",
+      "weather_clear": "Sereno",
+      "weather_cloudy": "Nuvoloso",
+      "weather_fog": "Nebbia",
+      "weather_rain": "Pioggia",
+      "weather_snow": "Neve",
+      "weather_storm": "Temporale"
     },
     "search": {
       "title": "Cerca Orto",

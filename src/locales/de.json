@@ -870,7 +870,22 @@
       "present": "Vorhanden",
       "absent": "Nicht vorhanden",
       "managed_by": "Verwaltet von",
-      "info_unavailable": "Vereinsinformationen nicht verfügbar."
+      "info_unavailable": "Vereinsinformationen nicht verfügbar.",
+      "weather_title": "Wetter deines Gartens",
+      "weather_loading": "Wetterdaten werden geladen...",
+      "weather_no_data": "Keine Wetterdaten in der Nähe verfügbar.",
+      "weather_error": "Fehler beim Laden der Wetterdaten.",
+      "weather_last_update": "Letzte Aktualisierung",
+      "weather_station": "Wetterstation",
+      "weather_reading": "Messung",
+      "weather_humidity": "Luftfeuchtigkeit",
+      "weather_wind": "Wind",
+      "weather_clear": "Klar",
+      "weather_cloudy": "Bewölkt",
+      "weather_fog": "Nebel",
+      "weather_rain": "Regen",
+      "weather_snow": "Schnee",
+      "weather_storm": "Gewitter"
     },
     "search": {
       "title": "Garten suchen",

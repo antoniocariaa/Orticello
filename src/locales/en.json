@@ -890,7 +890,22 @@
       "present": "Present",
       "absent": "Absent",
       "managed_by": "Managed by",
-      "info_unavailable": "Association information unavailable."
+      "info_unavailable": "Association information unavailable.",
+      "weather_title": "Your Garden Weather",
+      "weather_loading": "Loading weather data...",
+      "weather_no_data": "No weather data available nearby.",
+      "weather_error": "Error loading weather data.",
+      "weather_last_update": "Last update",
+      "weather_station": "Weather station",
+      "weather_reading": "Reading",
+      "weather_humidity": "Humidity",
+      "weather_wind": "Wind",
+      "weather_clear": "Clear sky",
+      "weather_cloudy": "Cloudy",
+      "weather_fog": "Fog",
+      "weather_rain": "Rain",
+      "weather_snow": "Snow",
+      "weather_storm": "Thunderstorm"
     },
     "search": {
       "title": "Search Garden",
