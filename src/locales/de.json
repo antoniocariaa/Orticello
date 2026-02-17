@@ -885,7 +885,14 @@
       "weather_fog": "Nebel",
       "weather_rain": "Regen",
       "weather_snow": "Schnee",
-      "weather_storm": "Gewitter"
+      "weather_storm": "Gewitter",
+      "crops_title": "Dein Gemüse",
+      "crops_empty": "Du hast noch kein Gemüse hinzugefügt. Füge das erste hinzu!",
+      "crops_add_placeholder": "Gemüsename...",
+      "crops_add_button": "Hinzufügen",
+      "crops_remove": "Entfernen",
+      "crops_duplicate": "Gemüse bereits vorhanden",
+      "crops_error": "Fehler bei der Gemüseverwaltung"
     },
     "search": {
       "title": "Garten suchen",

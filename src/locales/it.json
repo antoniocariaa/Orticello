@@ -439,7 +439,14 @@
       "weather_fog": "Nebbia",
       "weather_rain": "Pioggia",
       "weather_snow": "Neve",
-      "weather_storm": "Temporale"
+      "weather_storm": "Temporale",
+      "crops_title": "I tuoi Ortaggi",
+      "crops_empty": "Non hai ancora inserito ortaggi. Aggiungi il primo!",
+      "crops_add_placeholder": "Nome ortaggio...",
+      "crops_add_button": "Aggiungi",
+      "crops_remove": "Rimuovi",
+      "crops_duplicate": "Ortaggio già presente",
+      "crops_error": "Errore nella gestione degli ortaggi"
     },
     "search": {
       "title": "Cerca Orto",

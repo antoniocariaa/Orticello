@@ -905,7 +905,14 @@
       "weather_fog": "Fog",
       "weather_rain": "Rain",
       "weather_snow": "Snow",
-      "weather_storm": "Thunderstorm"
+      "weather_storm": "Thunderstorm",
+      "crops_title": "Your Vegetables",
+      "crops_empty": "You haven't added any vegetables yet. Add the first one!",
+      "crops_add_placeholder": "Vegetable name...",
+      "crops_add_button": "Add",
+      "crops_remove": "Remove",
+      "crops_duplicate": "Vegetable already present",
+      "crops_error": "Error managing vegetables"
     },
     "search": {
       "title": "Search Garden",
