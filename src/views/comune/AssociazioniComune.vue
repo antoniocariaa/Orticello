@@ -113,6 +113,146 @@ const showToast = (message, type = 'success') => {
     toast.value = { show: true, message, type }
     setTimeout(() => toast.value.show = false, 3000)
 }
+
+// Members Logic
+const selectedAssociazioneMembers = ref([])
+const isMembersModalOpen = ref(false)
+const isLoadingMembers = ref(false)
+
+const viewMembers = async (assoc) => {
+    selectedAssociazione.value = assoc
+    isLoadingMembers.value = true
+    isMembersModalOpen.value = true
+    selectedAssociazioneMembers.value = []
+    
+    try {
+        const res = await api.get(`/utenti/associazione/${assoc._id || assoc.id}`)
+        selectedAssociazioneMembers.value = Array.isArray(res) ? res : (res.data || [])
+    } catch (e) {
+        console.error('Error fetching members:', e)
+        showToast(t('comune.associations.error_loading_members'), 'error')
+    } finally {
+        isLoadingMembers.value = false
+    }
+}
+
+const closeMembersModal = () => {
+    isMembersModalOpen.value = false
+    selectedAssociazioneMembers.value = []
+}
+
+// Edit Member Logic
+const isEditMemberModalOpen = ref(false)
+const editMemberId = ref(null)
+const editMemberEmail = ref('')
+const editMemberAdmin = ref(false)
+const isEditingMember = ref(false)
+const editMemberError = ref(null)
+
+const openEditMemberModal = (member) => {
+    editMemberId.value = member._id || member.id
+    editMemberEmail.value = member.email
+    editMemberAdmin.value = member.admin
+    editMemberError.value = null
+    isEditMemberModalOpen.value = true
+}
+
+const closeEditMemberModal = () => {
+    isEditMemberModalOpen.value = false
+    editMemberId.value = null
+    editMemberEmail.value = ''
+    editMemberAdmin.value = false
+}
+
+const updateMember = async () => {
+    if (!editMemberId.value) return
+    
+    isEditingMember.value = true
+    editMemberError.value = null
+    
+    try {
+        const res = await api.put('/utenti/updateAssociazioneMember', {
+            id: editMemberId.value,
+            admin: editMemberAdmin.value
+        })
+        
+        if (res.utente) {
+            // Update local state
+            const index = selectedAssociazioneMembers.value.findIndex(m => (m._id || m.id) === editMemberId.value)
+            if (index !== -1) {
+                selectedAssociazioneMembers.value[index] = res.utente
+            }
+            showToast(t('success.member_updated'), 'success')
+            closeEditMemberModal()
+        }
+    } catch (e) {
+        console.error('Error updating member:', e)
+        editMemberError.value = e.message || t('members.update_error')
+    } finally {
+        isEditingMember.value = false
+    }
+}
+
+// Remove Member Logic
+const removeMember = async (memberId) => {
+    if (!confirm(t('comune.associations.confirm_remove_member'))) return
+    
+    try {
+        await api.put(`/utenti/removeAssociazioneRole/${memberId}`)
+        
+        // Remove from local list
+        selectedAssociazioneMembers.value = selectedAssociazioneMembers.value.filter(m => (m._id || m.id) !== memberId)
+        showToast(t('success.member_removed'), 'success')
+    } catch (e) {
+        console.error('Error removing member:', e)
+        showToast(e.message || t('members.remove_error'), 'error')
+    }
+}
+
+// Add Member Logic
+const addMemberEmail = ref('')
+const addMemberAdmin = ref(false)
+const isAddingMember = ref(false)
+const addMemberError = ref(null)
+const isAddMemberModalOpen = ref(false)
+
+const openAddMemberModal = () => {
+    addMemberEmail.value = ''
+    addMemberAdmin.value = false
+    addMemberError.value = null
+    isAddMemberModalOpen.value = true
+}
+
+const closeAddMemberModal = () => {
+    isAddMemberModalOpen.value = false
+}
+
+const addMember = async () => {
+    if (!addMemberEmail.value) return
+    
+    isAddingMember.value = true
+    addMemberError.value = null
+    
+    try {
+        const res = await api.put('/utenti/addAssociazioneMember', {
+            email: addMemberEmail.value,
+            admin: addMemberAdmin.value,
+            associazione: selectedAssociazione.value._id || selectedAssociazione.value.id
+        })
+        
+        // Refresh members list
+        if (res.utente) {
+            selectedAssociazioneMembers.value.push(res.utente)
+            showToast(t('success.member_added'), 'success')
+            closeAddMemberModal()
+        }
+    } catch (e) {
+        console.error('Error adding member:', e)
+        addMemberError.value = e.message || t('members.add_error')
+    } finally {
+        isAddingMember.value = false
+    }
+}
 </script>
 
 <template>
@@ -175,6 +315,14 @@ const showToast = (message, type = 'success') => {
                 </div>
 
                 <div class="card-actions justify-end mt-4">
+                    <button class="btn btn-sm btn-ghost hover:bg-primary hover:text-primary-content hover:border-primary transition-all gap-1 group"
+                            @click.stop="viewMembers(assoc)">
+                        <span>{{ $t('comune.associations.view_members') }}</span>
+                        <!-- Users Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                        </svg>
+                    </button>
                     <button class="btn btn-sm btn-ghost hover:bg-primary hover:text-primary-content hover:border-primary transition-all gap-1 group">
                         <span>{{ $t('comune.associations.see_details') }}</span>
                         <span class="transition-transform group-hover:translate-x-1">→</span>
@@ -199,7 +347,6 @@ const showToast = (message, type = 'success') => {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-4 text-sm">
                             <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.email') }}</span> {{ selectedAssociazione.email || '-' }}</div>
                             <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.phone') }}</span> {{ selectedAssociazione.telefono || '-' }}</div>
-                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.tax_id') }}</span> {{ selectedAssociazione.codicefiscale || '-' }}</div>
                             <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.address') }}</span> {{ selectedAssociazione.indirizzo || '-' }}</div>
                         </div>
                     </div>
@@ -253,6 +400,152 @@ const showToast = (message, type = 'success') => {
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="isModalOpen = false">close</button>
+        </form>
+    </dialog>
+    
+    <!-- Members Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isMembersModalOpen }">
+        <div class="modal-box w-11/12 max-w-4xl bg-base-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="font-bold text-2xl" v-if="selectedAssociazione">
+                    {{ $t('comune.associations.members_of') }} {{ selectedAssociazione.nome }}
+                </h3>
+                <button class="btn btn-sm btn-primary gap-2" @click="openAddMemberModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3.75 19.125a7.125 7.125 0 0114.25 0v.003h-.001c.002.321.002.645-.002.96h.002v.003a7.125 7.125 0 01-14.25 0v-.003H3.75v-.963h.001v-.003z" />
+                    </svg>
+                    {{ $t('comune.associations.add_member') }}
+                </button>
+            </div>
+
+            <div v-if="isLoadingMembers" class="flex justify-center py-12">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+
+            <div v-else-if="selectedAssociazioneMembers.length === 0" class="alert alert-info">
+                 <span>{{ $t('comune.associations.no_members_found') }}</span>
+            </div>
+
+            <div v-else class="overflow-x-auto">
+                <table class="table">
+                    <!-- head -->
+                    <thead>
+                    <tr>
+                        <th>{{ $t('comune.associations.member_name') }}</th>
+                        <th>{{ $t('comune.associations.member_email') }}</th>
+                        <th>{{ $t('comune.associations.member_phone') }}</th>
+                        <th>{{ $t('comune.associations.member_role') }}</th>
+                        <th>{{ $t('comune.associations.actions') }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="member in selectedAssociazioneMembers" :key="member._id || member.id" class="hover">
+                        <td>
+                            <div class="font-bold">{{ member.nome }} {{ member.cognome }}</div>
+                        </td>
+                        <td>{{ member.email }}</td>
+                        <td>{{ member.telefono }}</td>
+                        <td>
+                            <span class="badge" :class="member.admin ? 'badge-primary' : 'badge-ghost'">
+                                {{ member.admin ? 'Admin' : 'Utente' }}
+                            </span>
+                        </td>
+                        <td class="flex gap-2">
+                             <button class="btn btn-ghost btn-xs text-info" @click="openEditMemberModal(member)" :title="$t('comune.associations.edit_member')">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                                </svg>
+                            </button>
+                            <button class="btn btn-ghost btn-xs text-error" @click="removeMember(member._id || member.id)" :title="$t('comune.associations.remove_member')">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-action">
+                <button class="btn" @click="closeMembersModal">{{ $t('comune.associations.close') }}</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="closeMembersModal">close</button>
+        </form>
+    </dialog>
+
+    <!-- Edit Member Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isEditMemberModalOpen }">
+         <div class="modal-box w-11/12 max-w-lg bg-base-100">
+            <h3 class="font-bold text-lg mb-4">{{ $t('comune.associations.edit_member_title') }}</h3>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ $t('comune.associations.member_email') }}</span>
+                </label>
+                <input type="email" v-model="editMemberEmail" disabled class="input input-bordered w-full opacity-70" />
+            </div>
+            
+            <div class="form-control mb-6">
+                <label class="label cursor-pointer justify-start gap-4">
+                    <span class="label-text">{{ $t('comune.associations.member_is_admin') }}</span>
+                    <input type="checkbox" class="toggle toggle-primary" v-model="editMemberAdmin" />
+                </label>
+            </div>
+            
+             <div v-if="editMemberError" class="alert alert-error mb-4">
+                <span>{{ editMemberError }}</span>
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-ghost" @click="closeEditMemberModal" :disabled="isEditingMember">{{ $t('comune.associations.cancel') }}</button>
+                <button class="btn btn-primary" @click="updateMember" :disabled="isEditingMember">
+                    <span v-if="isEditingMember" class="loading loading-spinner"></span>
+                    {{ $t('comune.associations.update') }}
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="closeEditMemberModal" :disabled="isEditingMember">close</button>
+        </form>
+    </dialog>
+
+    <!-- Add Member Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isAddMemberModalOpen }">
+         <div class="modal-box w-11/12 max-w-lg bg-base-100">
+            <h3 class="font-bold text-lg mb-4">{{ $t('comune.associations.add_member_title') }}</h3>
+            <p class="text-sm text-gray-500 mb-4">{{ $t('comune.associations.add_member_desc', { name: selectedAssociazione?.nome }) }}</p>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ $t('comune.associations.member_email') }} *</span>
+                </label>
+                <input type="email" v-model="addMemberEmail" :placeholder="$t('comune.associations.member_email_placeholder')" class="input input-bordered w-full" />
+            </div>
+            
+            <div class="form-control mb-6">
+                <label class="label cursor-pointer justify-start gap-4">
+                    <span class="label-text">{{ $t('comune.associations.member_is_admin') }}</span>
+                    <input type="checkbox" class="toggle toggle-primary" v-model="addMemberAdmin" />
+                </label>
+            </div>
+            
+             <div v-if="addMemberError" class="alert alert-error mb-4">
+                <span>{{ addMemberError }}</span>
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-ghost" @click="closeAddMemberModal" :disabled="isAddingMember">{{ $t('comune.associations.cancel') }}</button>
+                <button class="btn btn-primary" @click="addMember" :disabled="!addMemberEmail || isAddingMember">
+                    <span v-if="isAddingMember" class="loading loading-spinner"></span>
+                    {{ $t('comune.associations.add') }}
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="closeAddMemberModal" :disabled="isAddingMember">close</button>
         </form>
     </dialog>
 
