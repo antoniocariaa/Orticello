@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { store } from '../store'
 import { 
   Sprout, Search, Info, Bell, LayoutDashboard, Handshake, Map, 
-  Megaphone, ScrollText, Inbox, LogOut
+  Megaphone, ScrollText, Inbox, LogOut, Users
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -80,9 +80,15 @@ const changeLanguage = (lang) => {
           </router-link>
         </li>
         <li>
-          <router-link to="/comune/avvisi" active-class="active" class="font-medium flex items-center gap-2">
+            <router-link to="/comune/avvisi" active-class="active" class="font-medium flex items-center gap-2">
              <Megaphone class="w-4 h-4" />
              {{ $t('nav.comune_notices') }}
+          </router-link>
+        </li>
+        <li>
+          <router-link to="/comune/membri" active-class="active" class="font-medium flex items-center gap-2">
+             <Users class="w-4 h-4" />
+             {{ $t('nav.members') }}
           </router-link>
         </li>
         <li>
@@ -123,6 +129,12 @@ const changeLanguage = (lang) => {
           <router-link to="/associazione/richieste" active-class="active" class="font-medium flex items-center gap-2">
              <Inbox class="w-4 h-4" />
              {{ $t('nav.requests') }}
+          </router-link>
+        </li>
+        <li>
+          <router-link to="/associazione/membri" active-class="active" class="font-medium flex items-center gap-2">
+             <Users class="w-4 h-4" />
+             {{ $t('nav.members') }}
           </router-link>
         </li>
       </ul>
@@ -225,6 +237,11 @@ const changeLanguage = (lang) => {
         <ScrollText class="w-6 h-6 mb-1" />
         <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
       </router-link>
+
+      <router-link to="/comune/membri" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
+        <Users class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.members_short') }}</span>
+      </router-link>
     </template>
 
     <!-- Associazione Dock -->
@@ -247,6 +264,11 @@ const changeLanguage = (lang) => {
       <router-link to="/associazione/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <ScrollText class="w-6 h-6 mb-1" />
         <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
+      </router-link>
+
+      <router-link to="/associazione/membri" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
+        <Users class="w-6 h-6 mb-1" />
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.members_short') }}</span>
       </router-link>
     </template>
 

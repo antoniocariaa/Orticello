@@ -6,8 +6,9 @@ import api from '../../services/api'
 import { store } from '../../store'
 import { 
   Sprout, Search, MapPin, Calendar, Clock, Maximize, Signal, 
-  CheckCircle, XCircle, Handshake, Mail, Phone 
+  CheckCircle, XCircle, Handshake, Mail, Phone, Leaf, Plus, X, AlertCircle
 } from 'lucide-vue-next'
+import WeatherCard from '../../components/WeatherCard.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -15,6 +16,47 @@ const loading = ref(true)
 const assignment = ref(null) 
 const ortoDetails = ref(null)
 const associationDetails = ref(null)
+
+// Crops management
+const newColtura = ref('')
+const addingColtura = ref(false)
+const colturaError = ref('')
+
+const addColtura = async () => {
+    const name = newColtura.value.trim()
+    if (!name || !assignment.value) return
+    if ((assignment.value.colture || []).includes(name)) {
+        colturaError.value = t('citizen.home.crops_duplicate')
+        setTimeout(() => colturaError.value = '', 3000)
+        return
+    }
+    addingColtura.value = true
+    colturaError.value = ''
+    try {
+        const id = assignment.value._id || assignment.value.id
+        const res = await api.post(`/affidaLotti/${id}/colture`, { coltura: name })
+        assignment.value.colture = res.colture || [...(assignment.value.colture || []), name]
+        newColtura.value = ''
+    } catch (err) {
+        colturaError.value = t('citizen.home.crops_error')
+        setTimeout(() => colturaError.value = '', 3000)
+    } finally {
+        addingColtura.value = false
+    }
+}
+
+const removeColtura = async (coltura) => {
+    if (!assignment.value) return
+    colturaError.value = ''
+    try {
+        const id = assignment.value._id || assignment.value.id
+        const res = await api.delete(`/affidaLotti/${id}/colture/${encodeURIComponent(coltura)}`)
+        assignment.value.colture = res.colture || (assignment.value.colture || []).filter(c => c !== coltura)
+    } catch (err) {
+        colturaError.value = t('citizen.home.crops_error')
+        setTimeout(() => colturaError.value = '', 3000)
+    }
+}
 
 const formatDate = (d) => {
     if (!d) return '-'
@@ -183,6 +225,56 @@ onMounted(fetchData)
                             </div>
                         </div>
                     </div>
+
+                    <!-- Crops Section (inline) -->
+                    <div class="divider">
+                        <Leaf class="w-4 h-4" /> {{ $t('citizen.home.crops_title') }}
+                    </div>
+
+                    <div v-if="colturaError" class="alert alert-error alert-sm py-2 text-sm mb-2">
+                        <AlertCircle class="w-4 h-4" />
+                        <span>{{ colturaError }}</span>
+                    </div>
+
+                    <div v-if="!assignment.colture?.length" class="text-sm italic opacity-50 text-center py-1">
+                        {{ $t('citizen.home.crops_empty') }}
+                    </div>
+                    <div v-else class="flex flex-wrap gap-2 mb-2">
+                        <div 
+                            v-for="coltura in assignment.colture" 
+                            :key="coltura"
+                            class="badge badge-lg badge-outline badge-primary gap-1 py-3"
+                        >
+                            {{ coltura }}
+                            <button 
+                                @click="removeColtura(coltura)" 
+                                class="btn btn-ghost btn-xs btn-circle p-0 hover:text-error"
+                                :title="$t('citizen.home.crops_remove')"
+                            >
+                                <X class="w-3 h-3" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <input 
+                            v-model="newColtura"
+                            @keyup.enter="addColtura"
+                            type="text"
+                            :placeholder="$t('citizen.home.crops_add_placeholder')"
+                            class="input input-bordered input-sm flex-1"
+                            :disabled="addingColtura"
+                        />
+                        <button 
+                            @click="addColtura" 
+                            class="btn btn-primary btn-sm gap-1"
+                            :disabled="!newColtura.trim() || addingColtura"
+                        >
+                            <span v-if="addingColtura" class="loading loading-spinner loading-xs"></span>
+                            <Plus v-else class="w-4 h-4" />
+                            {{ $t('citizen.home.crops_add_button') }}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -219,6 +311,12 @@ onMounted(fetchData)
                         </div>
                     </div>
                 </div>
+
+                <!-- Weather Card -->
+                <WeatherCard 
+                    v-if="ortoDetails?.geometry?.coordinates" 
+                    :coordinates="ortoDetails.geometry.coordinates" 
+                />
 
             </div>
 

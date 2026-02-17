@@ -63,6 +63,12 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/comune/membri',
+            name: 'comune-members',
+            component: () => import('../views/comune/MembriComune.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/comune/avvisi',
             name: 'comune-avvisi',
             component: () => import('../views/comune/AvvisiComune.vue'),
@@ -109,6 +115,12 @@ const router = createRouter({
             path: '/associazione/richieste',
             name: 'associazione-richieste',
             component: () => import('../views/associazione/RichiesteAssociazione.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/associazione/membri',
+            name: 'associazione-members',
+            component: () => import('../views/associazione/MembriAssociazione.vue'),
             meta: { requiresAuth: true }
         },
         {
