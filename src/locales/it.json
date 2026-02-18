@@ -190,6 +190,7 @@
     "request": "Richiedi",
     "active_request_tooltip": "Possiedi già un lotto assegnato e non puoi effettuare altre richieste",
     "no_lots_available": "Lotti non disponibili",
+    "not_available": "Non disponibile",
     "total_size": "Dimensione Totale:",
     "lots_count": "Lotti:",
     "details_lots": "Dettagli Lotti",

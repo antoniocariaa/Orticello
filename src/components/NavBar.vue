@@ -2,6 +2,7 @@
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { store } from '../store'
+import { FilePlus, Sprout, Search, Bell, Home, Users, MapPin, FileText } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -32,17 +33,20 @@ const changeLanguage = (lang) => {
       <ul v-if="store.user?.tipo === 'citt'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
           <router-link to="/cittadino/orto" active-class="active" class="font-medium">
+            <Sprout class="w-4 h-4" />
             {{ $t('nav.your_garden') }}
           </router-link>
         </li>
         <li>
           <router-link to="/cittadino/cerca" active-class="active" class="font-medium">
+            <Search class="w-4 h-4" />
             {{ $t('nav.search_garden') }}
           </router-link>
         </li>
         <li>
           <router-link to="/cittadino/avvisi" active-class="active" class="font-medium">
-             {{ $t('nav.notices') }}
+            <Bell class="w-4 h-4" /> 
+            {{ $t('nav.notices') }}
           </router-link>
         </li>
       </ul>
@@ -50,27 +54,32 @@ const changeLanguage = (lang) => {
       <ul v-if="store.user?.tipo === 'comu'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
           <router-link to="/comune/dashboard" active-class="active" class="font-medium">
+            <Home class="w-4 h-4" />
              {{ $t('nav.dashboard') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/associazioni" active-class="active" class="font-medium">
-             {{ $t('nav.associations') }}
+            <Users class="w-4 h-4" />
+            {{ $t('nav.associations') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/mappa" active-class="active" class="font-medium">
-             {{ $t('nav.map') }}
+            <MapPin class="w-4 h-4" />
+            {{ $t('nav.map') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/avvisi" active-class="active" class="font-medium">
-             {{ $t('nav.comune_notices') }}
+            <Bell class="w-4 h-4" />
+            {{ $t('nav.comune_notices') }}
           </router-link>
         </li>
         <li>
           <router-link to="/comune/bandi" active-class="active" class="font-medium">
-             {{ $t('nav.tenders') }}
+            <FileText class="w-4 h-4" />
+            {{ $t('nav.tenders') }}
           </router-link>
         </li>
       </ul>
@@ -79,27 +88,32 @@ const changeLanguage = (lang) => {
       <ul v-if="store.user?.tipo === 'asso'" class="menu menu-horizontal px-1 gap-2 hidden md:flex">
         <li>
           <router-link to="/associazione/dashboard" active-class="active" class="font-medium">
-             {{ $t('nav.dashboard') }}
+            <Home class="w-4 h-4" />
+            {{ $t('nav.dashboard') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/orti" active-class="active" class="font-medium">
+            <Sprout class="w-4 h-4" />
              {{ $t('nav.gardens') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/avvisi" active-class="active" class="font-medium">
+            <Bell class="w-4 h-4" />
              {{ $t('nav.notices') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/bandi" active-class="active" class="font-medium">
-             {{ $t('nav.tenders') }}
+            <FileText class="w-4 h-4" />
+            {{ $t('nav.tenders') }}
           </router-link>
         </li>
         <li>
           <router-link to="/associazione/richieste" active-class="active" class="font-medium">
-             {{ $t('nav.requests') }}
+            <FilePlus class="w-4 h-4" />
+            {{ $t('nav.requests') }}
           </router-link>
         </li>
       </ul>
@@ -108,24 +122,13 @@ const changeLanguage = (lang) => {
     <!--Profile & Language Dropdown-->
     <div class="flex-none gap-4">
       <div v-if="store.isAuthenticated" class="dropdown dropdown-end hidden md:inline-flex">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
-          <div class="bg-neutral text-neutral-content rounded-full w-10">
-            <span class="text-xl">{{ store.user?.nome ? store.user.nome.charAt(0).toUpperCase() : 'U' }}</span>
+        <router-link to="/profile">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-full w-10">
+              <span class="text-xl">{{ store.user?.nome ? store.user.nome.charAt(0).toUpperCase() : 'U' }}</span>
+            </div>
           </div>
-        </div>
-        <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-          <li>
-            <details open>
-              <summary>{{ $t('general.language') }}</summary>
-              <ul>
-                <li><a @click="changeLanguage('it')" :class="{ active: locale === 'it' }">Italiano</a></li>
-                <li><a @click="changeLanguage('en')" :class="{ active: locale === 'en' }">English</a></li>
-                <li><a @click="changeLanguage('de')" :class="{ active: locale === 'de' }">Deutsch</a></li>
-              </ul>
-            </details>
-          </li>
-          <li><a @click="logout" class="text-error">{{ $t('general.logout') }}</a></li>
-        </ul>
+        </router-link>
       </div>
     </div>
   </div>
