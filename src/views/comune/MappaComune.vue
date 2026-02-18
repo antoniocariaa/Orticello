@@ -1,11 +1,11 @@
 <script setup>
-import { ref, onMounted} from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
-import { Map, List, Plus, MapPin, Pencil, Handshake, Trash2 } from 'lucide-vue-next'
+import { Map, List, Plus, MapPin, Pencil, Handshake, Trash2, Search, Filter } from 'lucide-vue-next'
 
 const { t } = useI18n()
 
@@ -13,6 +13,11 @@ const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Coordinate Trento
 const orti = ref([])
 const affidamenti = ref([])
+const lottiDetails = ref({}) // Cache for lotti details
+
+// Filters
+const searchQuery = ref('')
+const sensorFilter = ref('all') // 'all' | 'with' | 'without'
 
 const isModalOpen = ref(false)
 const isEditMode = ref(false)
@@ -60,6 +65,29 @@ const fetchOrti = async () => {
     }
 }
 
+const fetchAllLotti = async () => {
+    try {
+        const response = await api.get('/lotti')
+        const allLotti = Array.isArray(response) ? response : (response.data || [])
+        allLotti.forEach(lotto => {
+            if (lotto._id) lottiDetails.value[lotto._id] = lotto
+            if (lotto.id) lottiDetails.value[lotto.id] = lotto
+        })
+    } catch (e) {
+        console.error('Failed to fetch all lotti', e)
+    }
+}
+
+const getLottoData = (lottoId) => {
+    if (typeof lottoId === 'object' && lottoId !== null) {
+        if (lottoId.dimensione !== undefined) return lottoId
+        const id = lottoId._id || lottoId.id
+        if (id && lottiDetails.value[id]) return lottiDetails.value[id]
+        return lottoId
+    }
+    return lottiDetails.value[lottoId] || { dimensione: 'N/A', sensori: false }
+}
+
 const fetchAffidamenti = async () => {
     try {
         const response = await api.get('/affidaOrti/active')
@@ -84,10 +112,29 @@ const isAssigned = (ortoId) => {
 }
 
 onMounted(async () => {
-    await Promise.all([fetchOrti(), fetchAffidamenti(), fetchAssociazioni()])
+    await Promise.all([fetchOrti(), fetchAllLotti(), fetchAffidamenti(), fetchAssociazioni()])
 })
 
 const viewMode = ref('map') // 'map' or 'list'
+
+const filteredOrti = computed(() => {
+    return orti.value.filter(orto => {
+        // Name / address filter
+        if (searchQuery.value.trim()) {
+            const q = searchQuery.value.trim().toLowerCase()
+            const nome = (orto.nome || '').toLowerCase()
+            const indirizzo = (orto.indirizzo || '').toLowerCase()
+            if (!nome.includes(q) && !indirizzo.includes(q)) return false
+        }
+        // Sensor filter
+        if (sensorFilter.value !== 'all' && orto.lotti?.length) {
+            const hasSensors = orto.lotti.some(l => getLottoData(l).sensori === true)
+            if (sensorFilter.value === 'with' && !hasSensors) return false
+            if (sensorFilter.value === 'without' && hasSensors) return false
+        }
+        return true
+    })
+})
 
 const openAddModal = () => {
     isEditMode.value = false
@@ -303,6 +350,27 @@ const saveOrto = async () => {
           <div class="flex flex-col gap-3 w-full md:w-auto">
               <h1 class="text-3xl font-bold text-primary">{{ $t('comune.map.title') }}</h1>
               
+              <!-- Filters -->
+              <div class="flex flex-wrap gap-3 items-center w-full">
+                  <div class="relative flex-1 min-w-[200px] max-w-sm">
+                      <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
+                      <input 
+                          v-model="searchQuery"
+                          type="text" 
+                          :placeholder="$t('search.search_placeholder')"
+                          class="input input-bordered input-sm w-full pl-9"
+                      />
+                  </div>
+                  <div class="flex items-center gap-2">
+                      <Filter class="w-4 h-4 opacity-50" />
+                      <select v-model="sensorFilter" class="select select-bordered select-sm">
+                          <option value="all">{{ $t('search.filter_all') }}</option>
+                          <option value="with">{{ $t('search.filter_with_sensors') }}</option>
+                          <option value="without">{{ $t('search.filter_without_sensors') }}</option>
+                      </select>
+                  </div>
+              </div>
+
               <div class="flex flex-wrap gap-4 items-center">
                   <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
@@ -347,7 +415,7 @@ const saveOrto = async () => {
             ></l-tile-layer>
 
             <l-marker 
-                v-for="orto in orti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
+                v-for="orto in filteredOrti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
                 :key="orto._id || orto.id"
                 :lat-lng="[orto.geometry.coordinates[1], orto.geometry.coordinates[0]]"
             >
@@ -382,7 +450,7 @@ const saveOrto = async () => {
 
       <!-- List View -->
       <div v-if="viewMode === 'list'" class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-<div v-for="orto in orti" :key="orto._id || orto.id" class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow">
+<div v-for="orto in filteredOrti" :key="orto._id || orto.id" class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow">
   <div class="card-body p-6">
     <!-- Status Badge at Top -->
     <div class="mb-3">
@@ -430,8 +498,8 @@ const saveOrto = async () => {
   </div>
 </div>
           
-          <div v-if="orti.length === 0" class="col-span-full text-center py-10 opacity-50">
-              {{ $t('comune.map.no_orti') }}
+          <div v-if="filteredOrti.length === 0" class="col-span-full text-center py-10 opacity-50">
+              {{ (searchQuery.trim() || sensorFilter !== 'all') ? $t('search.no_results') : $t('comune.map.no_orti') }}
           </div>
       </div>
 
