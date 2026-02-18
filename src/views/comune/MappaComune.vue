@@ -2,12 +2,16 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
+import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
 import { Map, List, Plus, MapPin, Pencil, Handshake, Trash2, Search, Filter } from 'lucide-vue-next'
 
 const { t } = useI18n()
+
+// Check if user is admin
+const isAdmin = computed(() => store.user?.admin === true)
 
 const zoom = ref(13)
 const center = ref([46.06787, 11.12108]) // Coordinate Trento
@@ -341,6 +345,39 @@ const saveOrto = async () => {
         loading.value = false
     }
 }
+
+// Delete Modal State
+const isDeleteModalOpen = ref(false)
+const ortoToDelete = ref(null)
+
+const openDeleteModal = (orto) => {
+    ortoToDelete.value = orto
+    isDeleteModalOpen.value = true
+}
+
+const deleteOrto = async () => {
+    if (!ortoToDelete.value) return
+    
+    loading.value = true
+    try {
+        const ortoId = ortoToDelete.value._id || ortoToDelete.value.id
+        
+        // Delete the orto using the API
+        await api.delete(`/orti/${ortoId}`)
+        
+        isDeleteModalOpen.value = false
+        ortoToDelete.value = null
+        showToast(t('comune.map.orto_deleted'), 'success')
+        
+        // Refresh the list
+        await Promise.all([fetchOrti(), fetchAffidamenti()])
+    } catch (e) {
+        console.error(e)
+        showToast(t('comune.map.error_deleting') + e.message, 'error')
+    } finally {
+        loading.value = false
+    }
+}
 </script>
 
 <template>
@@ -439,9 +476,14 @@ const saveOrto = async () => {
                             </span>
                             <span class="badge badge-ghost badge-sm">{{ $t('comune.map.lots') }} {{ orto.lotti?.length || 0 }}</span>
                         </div>
-                        <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning w-full gap-2">
-                            <Pencil class="w-3 h-3" /> {{ $t('comune.map.edit') }}
-                        </button>
+                        <div class="flex flex-col gap-2">
+                            <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning w-full gap-2">
+                                <Pencil class="w-3 h-3" /> {{ $t('comune.map.edit') }}
+                            </button>
+                            <button v-if="isAdmin" @click="openDeleteModal(orto)" class="btn btn-sm btn-outline btn-error w-full gap-2">
+                                <Trash2 class="w-3 h-3" /> {{ $t('comune.map.delete') }}
+                            </button>
+                        </div>
                     </div>
                 </l-popup>
             </l-marker>
@@ -489,10 +531,13 @@ const saveOrto = async () => {
       </div>
     </div>
 
-    <!-- Action Button -->
-    <div class="card-actions justify-end">
+    <!-- Action Buttons -->
+    <div class="card-actions justify-end gap-2">
       <button @click="openEditModal(orto)" class="btn btn-sm btn-outline btn-warning gap-1">
         <Pencil class="w-3 h-3" /> {{ $t('comune.map.edit') }}
+      </button>
+      <button v-if="isAdmin" @click="openDeleteModal(orto)" class="btn btn-sm btn-outline btn-error gap-1">
+        <Trash2 class="w-3 h-3" /> {{ $t('comune.map.delete') }}
       </button>
     </div>
   </div>
@@ -613,6 +658,27 @@ const saveOrto = async () => {
         </form>
     </dialog>
     
+    <!-- Delete Confirmation Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isDeleteModalOpen }">
+        <div class="modal-box bg-base-100">
+            <h3 class="font-bold text-xl mb-4 text-error">{{ $t('comune.map.delete_orto_confirm') }}</h3>
+            <p class="py-4">
+                {{ $t('comune.map.delete_orto_message', { name: ortoToDelete?.nome || '' }) }}
+            </p>
+            <div class="modal-action">
+                <button @click="isDeleteModalOpen = false" class="btn btn-ghost" :disabled="loading">{{ $t('comune.map.cancel') }}</button>
+                <button @click="deleteOrto" class="btn btn-error" :disabled="loading">
+                    <span v-if="loading" class="loading loading-spinner loading-sm"></span>
+                    <Trash2 v-else class="w-4 h-4" />
+                    {{ loading ? $t('comune.map.deleting') : $t('comune.map.delete') }}
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="isDeleteModalOpen = false">close</button>
+        </form>
+    </dialog>
+
     <!-- Toast -->
     <div v-if="toast.show" class="toast toast-end z-[9999]">
         <div class="alert" :class="toast.type === 'error' ? 'alert-error' : 'alert-success'">
