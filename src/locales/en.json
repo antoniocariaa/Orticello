@@ -55,7 +55,8 @@
     "add_member_btn": "Add",
     "add_error": "Error adding member",
     "already_comune": "User is already a Comune member",
-    "not_citizen": "User is not a Citizen and cannot be promoted"
+    "not_citizen": "User is not a Citizen and cannot be promoted",
+    "update_error": "Error updating member"
   },
   "members_asso": {
     "title": "Association Members",
