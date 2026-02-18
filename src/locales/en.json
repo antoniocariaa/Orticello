@@ -919,7 +919,15 @@
       "crops_add_button": "Add",
       "crops_remove": "Remove",
       "crops_duplicate": "Vegetable already present",
-      "crops_error": "Error managing vegetables"
+      "crops_error": "Error managing vegetables",
+      "tips_title": "Orticello AI",
+      "tips_button": "Ask for advice",
+      "tips_refresh": "Refresh tips",
+      "tips_loading": "Generating tips...",
+      "tips_error": "Error generating tips",
+      "tips_no_crops": "Add at least one vegetable to receive tips",
+      "tips_empty_state": "Press the button to receive personalized tips for your vegetables",
+      "tips_disclaimer": "AI-generated information may not be accurate"
     },
     "search": {
       "title": "Search Garden",

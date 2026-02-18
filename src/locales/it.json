@@ -453,7 +453,15 @@
       "crops_add_button": "Aggiungi",
       "crops_remove": "Rimuovi",
       "crops_duplicate": "Ortaggio già presente",
-      "crops_error": "Errore nella gestione degli ortaggi"
+      "crops_error": "Errore nella gestione degli ortaggi",
+      "tips_title": "Orticello AI",
+      "tips_button": "Chiedi consiglio",
+      "tips_refresh": "Aggiorna consigli",
+      "tips_loading": "Generazione consigli in corso...",
+      "tips_error": "Errore nella generazione dei consigli",
+      "tips_no_crops": "Aggiungi almeno un ortaggio per ricevere consigli",
+      "tips_empty_state": "Premi il pulsante per ricevere consigli personalizzati per i tuoi ortaggi",
+      "tips_disclaimer": "Le informazioni generate dall'AI potrebbero non essere accurate"
     },
     "search": {
       "title": "Cerca Orto",

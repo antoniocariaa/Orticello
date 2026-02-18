@@ -899,7 +899,15 @@
       "crops_add_button": "Hinzufügen",
       "crops_remove": "Entfernen",
       "crops_duplicate": "Gemüse bereits vorhanden",
-      "crops_error": "Fehler bei der Gemüseverwaltung"
+      "crops_error": "Fehler bei der Gemüseverwaltung",
+      "tips_title": "Orticello AI",
+      "tips_button": "Rat einholen",
+      "tips_refresh": "Tipps aktualisieren",
+      "tips_loading": "Tipps werden generiert...",
+      "tips_error": "Fehler beim Generieren der Tipps",
+      "tips_no_crops": "Füge mindestens ein Gemüse hinzu, um Tipps zu erhalten",
+      "tips_empty_state": "Drücke den Button, um personalisierte Tipps für dein Gemüse zu erhalten",
+      "tips_disclaimer": "KI-generierte Informationen sind möglicherweise nicht korrekt"
     },
     "search": {
       "title": "Garten suchen",
