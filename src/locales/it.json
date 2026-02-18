@@ -706,7 +706,7 @@
       "add_member": "Aggiungi Membro",
       "add_member_title": "Aggiungi Membro all'Associazione",
       "add_member_desc": "Aggiungi un nuovo membro a {name} inserendo l'email dell'utente.",
-      "member_email_placeholder": "esempio@email.com",
+      "member_email_placeholder": "esempio{@}email.com",
       "member_is_admin": "È Amministratore dell'Associazione?",
       "add": "Aggiungi",
       "actions": "Azioni",
