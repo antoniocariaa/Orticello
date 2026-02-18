@@ -1,10 +1,12 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { store } from '../store'
-import HomeCittadino from './cittadino/HomeCittadino.vue'
-import HomeAssociazione from './associazione/HomeAssociazione.vue'
-import HomeComune from './comune/HomeComune.vue'
+
+// Lazy load components to avoid duplicate imports with router
+const HomeCittadino = defineAsyncComponent(() => import('./cittadino/HomeCittadino.vue'))
+const HomeAssociazione = defineAsyncComponent(() => import('./associazione/HomeAssociazione.vue'))
+const HomeComune = defineAsyncComponent(() => import('./comune/HomeComune.vue'))
 
 const { t } = useI18n()
 const user = computed(() => store.user)
