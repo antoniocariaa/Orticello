@@ -76,7 +76,7 @@ const fetchData = async () => {
         // Filter Orti for this Association via AffidaOrto
         // Find which Orti are assigned to my Association (current or past)
         const myAffidi = allAffidaOrti.filter(ao => {
-             const aId = typeof ao.associazione === 'object' ? (ao.associazione._id || ao.associazione.id) : ao.associazione
+             const aId = (ao.associazione && typeof ao.associazione === 'object') ? (ao.associazione._id || ao.associazione.id) : ao.associazione
              
              // Check ownership only (remove date filtering to show all assigned orti)
              return String(aId) === String(myAssocId)
@@ -86,7 +86,7 @@ const fetchData = async () => {
 
         const myOrtoIds = new Set(myAffidi.map(ao => {
             const o = ao.orto
-            return String(typeof o === 'object' ? (o._id || o.id) : o)
+            return String((o && typeof o === 'object') ? (o._id || o.id) : o)
         }))
 
         console.log('My Orto IDs:', myOrtoIds)
@@ -101,7 +101,7 @@ const fetchData = async () => {
         orti.value.forEach(o => {
             if (Array.isArray(o.lotti)) {
                 o.lotti.forEach(l => {
-                    const lId = typeof l === 'object' ? (l._id || l.id) : l
+                    const lId = (l && typeof l === 'object') ? (l._id || l.id) : l
                     if (lId) myLottoIds.add(String(lId))
                 })
             }
@@ -138,7 +138,7 @@ const getUserDetails = (userId) => {
 const getLottoNumber = (lottoId, orto) => {
     if (!orto || !orto.lotti) return 'N/A'
     const index = orto.lotti.findIndex(l => {
-        const lId = typeof l === 'object' ? (l._id || l.id) : l
+        const lId = (l && typeof l === 'object') ? (l._id || l.id) : l
         return String(lId) === String(lottoId)
     })
     return index !== -1 ? `Lotto ${index + 1}` : 'N/A'
@@ -198,7 +198,7 @@ const dataByOrto = computed(() => {
     const findOrtoForLotto = (lottoId) => {
         return orti.value.find(o => 
             o.lotti && o.lotti.some(l => {
-                const lId = typeof l === 'object' ? (l._id || l.id) : l
+                const lId = (l && typeof l === 'object') ? (l._id || l.id) : l
                 return String(lId) === String(lottoId)
             })
         )
@@ -206,7 +206,7 @@ const dataByOrto = computed(() => {
     
     // Aggiungi richieste pendenti
     pendingRequestsData.value.forEach(req => {
-        const lottoId = typeof req.lotto === 'object' ? (req.lotto._id || req.lotto.id) : req.lotto
+        const lottoId = (req.lotto && typeof req.lotto === 'object') ? (req.lotto._id || req.lotto.id) : req.lotto
         const orto = findOrtoForLotto(lottoId)
         if (orto) {
             const ortoId = String(orto._id || orto.id)
@@ -221,7 +221,7 @@ const dataByOrto = computed(() => {
     
     // Aggiungi storico solo per gli orti che lo hanno caricato
     historicalRequestsData.value.forEach(req => {
-        const lottoId = typeof req.lotto === 'object' ? (req.lotto._id || req.lotto.id) : req.lotto
+        const lottoId = (req.lotto && typeof req.lotto === 'object') ? (req.lotto._id || req.lotto.id) : req.lotto
         const orto = findOrtoForLotto(lottoId)
         if (orto) {
             const ortoId = String(orto._id || orto.id)

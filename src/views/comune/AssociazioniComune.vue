@@ -2,7 +2,7 @@
 import { ref, onMounted} from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
-import { Plus, Mail, Phone, FileText, MapPin, Sprout, Handshake } from 'lucide-vue-next'
+import { Plus, Mail, Phone, FileText, MapPin, Sprout, Handshake, Pencil, Trash2 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 
@@ -106,6 +106,93 @@ const createAssociazione = async () => {
         isSubmitting.value = false
     }
 }
+
+
+// Edit Association Logic
+const isEditModalOpen = ref(false)
+const isSubmittingEdit = ref(false)
+const editAssociazioneData = ref({
+    id: '',
+    nome: '',
+    indirizzo: '',
+    telefono: '',
+    email: ''
+})
+
+const openEditModal = (assoc) => {
+    editAssociazioneData.value = {
+        id: assoc._id || assoc.id,
+        nome: assoc.nome,
+        indirizzo: assoc.indirizzo,
+        telefono: assoc.telefono,
+        email: assoc.email
+    }
+    isEditModalOpen.value = true
+}
+
+const closeEditModal = () => {
+    isEditModalOpen.value = false
+    editAssociazioneData.value = { id: '', nome: '', indirizzo: '', telefono: '', email: '' }
+}
+
+const updateAssociazione = async () => {
+    // Basic validation
+    if (!editAssociazioneData.value.nome || !editAssociazioneData.value.indirizzo || !editAssociazioneData.value.telefono || !editAssociazioneData.value.email) {
+        showToast(t('comune.associations.fill_required'), 'error')
+        return
+    }
+
+    isSubmittingEdit.value = true
+    try {
+        const payload = { ...editAssociazioneData.value }
+        const id = payload.id
+        delete payload.id
+
+        await api.put(`/associazioni/${id}`, payload)
+        showToast(t('comune.associations.updated_success'), 'success')
+        closeEditModal()
+        fetchData() // Refresh list
+    } catch (e) {
+        console.error('Error updating association:', e)
+        showToast(e.message || t('comune.associations.update_error'), 'error')
+    } finally {
+        isSubmittingEdit.value = false
+    }
+}
+
+
+// Delete Logic with Modal
+const isDeleteModalOpen = ref(false)
+const associationToDelete = ref(null)
+const isDeleting = ref(false)
+
+const confirmDeleteAssociazione = (assoc) => {
+    associationToDelete.value = assoc
+    isDeleteModalOpen.value = true
+}
+
+const closeDeleteModal = () => {
+    isDeleteModalOpen.value = false
+    associationToDelete.value = null
+}
+
+const confirmDelete = async () => {
+    if (!associationToDelete.value) return
+
+    isDeleting.value = true
+    try {
+        await api.delete(`/associazioni/${associationToDelete.value._id || associationToDelete.value.id}`)
+        showToast(t('success.associazione_deleted'), 'success')
+        fetchData() // Refresh list
+        closeDeleteModal()
+    } catch (e) {
+        console.error('Error deleting association:', e)
+        showToast(e.message || t('errors.deleting_associazione'), 'error')
+    } finally {
+        isDeleting.value = false
+    }
+}
+
 
 // Toast
 const toast = ref({ show: false, message: '', type: 'success' })
@@ -289,44 +376,76 @@ const addMember = async () => {
     <!-- Grid Layout -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
         <div v-for="assoc in associazioni" :key="assoc._id || assoc.id" 
-             class="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all cursor-pointer group"
-             @click="openDetails(assoc)">
-            <div class="card-body">
-                <div class="flex items-start justify-between">
-                    <div class="avatar placeholder">
-                        <div class="bg-primary text-primary-content rounded-full w-12">
-                            <span class="text-xl font-bold">{{ assoc.nome ? assoc.nome.charAt(0).toUpperCase() : '?' }}</span>
+             class="card bg-base-100 shadow-lg border border-base-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group overflow-hidden">
+            
+            <!-- Card Header Decoration -->
+            <div class="h-2 bg-gradient-to-r from-primary to-secondary w-full"></div>
+            
+            <div class="card-body p-6">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="avatar placeholder">
+                            <div class="bg-primary/10 text-primary rounded-full w-12 h-12 flex items-center justify-center border border-primary/20">
+                                <span class="text-xl font-bold">{{ assoc.nome ? assoc.nome.charAt(0).toUpperCase() : '?' }}</span>
+                            </div>
                         </div>
+                        <h2 class="card-title text-lg font-bold text-gray-800 group-hover:text-primary transition-colors line-clamp-1" :title="assoc.nome">
+                            {{ assoc.nome }}
+                        </h2>
                     </div>
                 </div>
                 
-                <h2 class="card-title text-primary mt-2 group-hover:underline">{{ assoc.nome }}</h2>
-                
-                <div class="text-sm text-gray-600 space-y-1 mt-2">
-                    <div v-if="assoc.email" class="flex items-center gap-2">
-                        <Mail class="w-4 h-4 opacity-70" /> {{ assoc.email }}
+                <div class="divider my-1"></div>
+
+                <div class="text-sm text-gray-600 space-y-2 flex-grow">
+                    <div v-if="assoc.email" class="flex items-center gap-2 group/item">
+                        <div class="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors">
+                             <Mail class="w-4 h-4" />
+                        </div>
+                        <span class="truncate" :title="assoc.email">{{ assoc.email }}</span>
                     </div>
-                    <div v-if="assoc.telefono" class="flex items-center gap-2">
-                        <Phone class="w-4 h-4 opacity-70" /> {{ assoc.telefono }}
+                    <div v-if="assoc.telefono" class="flex items-center gap-2 group/item">
+                        <div class="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors">
+                            <Phone class="w-4 h-4" />
+                        </div>
+                        <span>{{ assoc.telefono }}</span>
                     </div>
-                    <div v-if="assoc.codicefiscale" class="flex items-center gap-2">
-                        <FileText class="w-4 h-4 opacity-70" /> {{ assoc.codicefiscale }}
+                    <div v-if="assoc.indirizzo" class="flex items-center gap-2 group/item">
+                        <div class="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors">
+                            <MapPin class="w-4 h-4" />
+                        </div>
+                        <span class="truncate" :title="assoc.indirizzo">{{ assoc.indirizzo }}</span>
                     </div>
                 </div>
 
-                <div class="card-actions justify-end mt-4">
-                    <button class="btn btn-sm btn-ghost hover:bg-primary hover:text-primary-content hover:border-primary transition-all gap-1 group"
-                            @click.stop="viewMembers(assoc)">
-                        <span>{{ $t('comune.associations.view_members') }}</span>
-                        <!-- Users Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                        </svg>
-                    </button>
-                    <button class="btn btn-sm btn-ghost hover:bg-primary hover:text-primary-content hover:border-primary transition-all gap-1 group">
-                        <span>{{ $t('comune.associations.see_details') }}</span>
-                        <span class="transition-transform group-hover:translate-x-1">→</span>
-                    </button>                
+                <div class="flex gap-2 mt-4 pt-4 border-t border-base-100">
+                    <div class="badge badge-ghost gap-1 p-3 flex-1 justify-center" :title="$t('comune.associations.managed_orti')">
+                         <Sprout class="w-3 h-3" /> 
+                         <span class="font-bold">{{ getManagedOrti(assoc._id || assoc.id).length }}</span> {{ $t('comune.associations.gardens_short') }}
+                    </div>
+                     <!-- Placeholder for members count if available -->
+                </div>
+
+                <div class="card-actions justify-end mt-4 gap-2">
+                    <div class="join w-full grid grid-cols-3">
+                        <button class="join-item btn btn-sm btn-ghost hover:bg-base-200 hover:text-primary tooltip"
+                                :data-tip="$t('comune.associations.view_members')"
+                                @click.stop="viewMembers(assoc)">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                            </svg>
+                        </button>
+                        <button class="join-item btn btn-sm btn-ghost hover:bg-warning/20 hover:text-warning tooltip"
+                                :data-tip="$t('comune.associations.edit')"
+                                @click.stop="openEditModal(assoc)">
+                             <Pencil class="w-4 h-4" />
+                        </button>
+                        <button class="join-item btn btn-sm btn-ghost hover:bg-error/20 hover:text-error tooltip"
+                                :data-tip="$t('comune.associations.delete')"
+                                @click.stop="confirmDeleteAssociazione(assoc)">
+                             <Trash2 class="w-4 h-4" />
+                        </button>
+                    </div>             
                 </div>
             </div>
         </div>
@@ -334,56 +453,63 @@ const addMember = async () => {
 
     <!-- Modal Details -->
     <dialog class="modal" :class="{ 'modal-open': isModalOpen }">
-        <div class="modal-box w-11/12 max-w-5xl bg-base-100">
-            <div v-if="selectedAssociazione">
-                <div class="flex flex-col md:flex-row gap-6 md:items-start border-b border-base-200 pb-6 mb-6">
-                    <div class="avatar placeholder">
-                        <div class="bg-primary text-primary-content rounded-xl w-24 h-24 text-3xl font-bold">
-                            {{ selectedAssociazione.nome ? selectedAssociazione.nome.charAt(0).toUpperCase() : '?' }}
-                        </div>
+        <div class="modal-box w-11/12 max-w-5xl bg-base-100 p-0 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-primary text-primary-content p-6 flex items-start gap-4">
+                 <div class="avatar placeholder">
+                    <div class="bg-white/20 text-white rounded-xl w-20 h-20 text-3xl font-bold flex items-center justify-center backdrop-blur-sm">
+                        {{ selectedAssociazione?.nome ? selectedAssociazione.nome.charAt(0).toUpperCase() : '?' }}
                     </div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-3xl text-primary">{{ selectedAssociazione.nome }}</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-4 text-sm">
-                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.email') }}</span> {{ selectedAssociazione.email || '-' }}</div>
-                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.phone') }}</span> {{ selectedAssociazione.telefono || '-' }}</div>
-                            <div class="flex gap-2"><span class="font-semibold w-24">{{ $t('comune.associations.address') }}</span> {{ selectedAssociazione.indirizzo || '-' }}</div>
-                        </div>
-                    </div>
+                </div>
+                <div class="flex-1">
+                     <h3 class="font-bold text-3xl">{{ selectedAssociazione?.nome }}</h3>
+                     <div class="flex flex-wrap gap-4 mt-2 opacity-90 text-sm">
+                        <div class="flex items-center gap-2"><Mail class="w-4 h-4" /> {{ selectedAssociazione?.email || '-' }}</div>
+                        <div class="flex items-center gap-2"><Phone class="w-4 h-4" /> {{ selectedAssociazione?.telefono || '-' }}</div>
+                     </div>
+                </div>
+                 <button class="btn btn-sm btn-circle btn-ghost text-white/70 hover:text-white" @click="isModalOpen = false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Address & Extra Info -->
+                 <div class="flex items-center gap-2 text-gray-600 mb-6 bg-base-200 p-3 rounded-lg">
+                    <MapPin class="w-5 h-5 text-primary" />
+                    <span class="font-medium">{{ selectedAssociazione?.indirizzo || '-' }}</span>
                 </div>
 
                 <div>
-                    <h4 class="font-bold text-xl mb-4 flex items-center gap-2">
+                    <h4 class="font-bold text-xl mb-4 flex items-center gap-2 border-b border-base-200 pb-2">
                         <Sprout class="w-6 h-6 text-primary" /> {{ $t('comune.associations.managed_orti') }}
-                        <span class="badge badge-primary badge-outline">{{ getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length }}</span>
+                        <span class="badge badge-primary badge-outline ml-auto">{{ selectedAssociazione ? getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length : 0 }}</span>
                     </h4>
                     
-                    <div v-if="getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length === 0" class="alert alert-info bg-base-200 border-none text-base-content/70">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>{{ $t('comune.associations.no_managed_orti') }}</span>
+                    <div v-if="selectedAssociazione && getManagedOrti(selectedAssociazione._id || selectedAssociazione.id).length === 0" 
+                         class="alert alert-info bg-base-200 border-none text-base-content/70 flex justify-center">
+                        <div class="flex items-center gap-2">
+                            <span class="loading loading-ring loading-md"></span>
+                            <span>{{ $t('comune.associations.no_managed_orti') }}</span>
+                        </div>
                     </div>
 
-                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div v-for="orto in getManagedOrti(selectedAssociazione._id || selectedAssociazione.id)" :key="orto._id || orto.id"
-                             class="card bg-base-100 border border-base-300 shadow-sm">
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2">
+                        <div v-for="orto in (selectedAssociazione ? getManagedOrti(selectedAssociazione._id || selectedAssociazione.id) : [])" 
+                             :key="orto._id || orto.id"
+                             class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-all">
                             <div class="card-body p-5">
-                                <h5 class="card-title text-lg">{{ orto.nome }}</h5>
-                                <p class="text-sm text-gray-500 flex items-center gap-1"><MapPin class="w-4 h-4" /> {{ orto.indirizzo }}</p>
+                                <h5 class="card-title text-lg text-primary">{{ orto.nome }}</h5>
+                                <p class="text-sm text-gray-500 flex items-center gap-1 mb-2"><MapPin class="w-3 h-3" /> {{ orto.indirizzo }}</p>
                                 
-                                <div class="divider my-2"></div>
-                                
-                                <div class="text-xs space-y-1">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-500">{{ $t('comune.associations.assignment_start') }}</span>
-                                        <span class="font-medium">{{ formatDate(orto.assignment_start) }}</span>
+                                <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200/50 w-full text-xs">
+                                     <div class="stat p-2 place-items-center">
+                                        <div class="stat-title">{{ $t('comune.associations.lots') }}</div>
+                                        <div class="stat-value text-lg">{{ orto.lotti?.length || 0 }}</div>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-500">{{ $t('comune.associations.assignment_end') }}</span>
-                                        <span class="font-medium">{{ formatDate(orto.assignment_end) }}</span>
-                                    </div>
-                                    <div class="flex justify-between mt-2 pt-2 border-t border-base-200">
-                                         <span class="text-gray-500">{{ $t('comune.associations.total_lots') }}</span>
-                                         <span class="badge badge-sm badge-ghost">{{ orto.lotti?.length || 0 }}</span>
+                                    <div class="stat p-2 place-items-center">
+                                        <div class="stat-title">{{ $t('comune.associations.assignment_end') }}</div>
+                                        <div class="stat-value text-sm font-medium">{{ formatDate(orto.assignment_end) }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -392,7 +518,7 @@ const addMember = async () => {
                 </div>
             </div>
             
-            <div class="modal-action">
+             <div class="modal-action bg-base-200/50 p-4 m-0">
                 <form method="dialog">
                     <button class="btn" @click="isModalOpen = false">{{ $t('comune.associations.close') }}</button>
                 </form>
@@ -400,6 +526,27 @@ const addMember = async () => {
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="isModalOpen = false">close</button>
+        </form>
+    </dialog>
+    <!-- Delete Confirmation Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isDeleteModalOpen }">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-error flex items-center gap-2">
+                <Trash2 class="w-6 h-6" /> {{ $t('comune.associations.delete_confirm_title') }}
+            </h3>
+            <p class="py-4">
+                {{ $t('comune.associations.delete_association_confirm', { name: associationToDelete?.nome }) }}
+            </p>
+            <div class="modal-action">
+                <button class="btn btn-ghost" @click="closeDeleteModal">{{ $t('comune.associations.cancel') }}</button>
+                <button class="btn btn-error" @click="confirmDelete" :disabled="isDeleting">
+                    <span v-if="isDeleting" class="loading loading-spinner"></span>
+                    {{ $t('comune.associations.delete') }}
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="closeDeleteModal">close</button>
         </form>
     </dialog>
     
@@ -587,6 +734,47 @@ const addMember = async () => {
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="isAddModalOpen = false">close</button>
+        </form>
+    </dialog>
+
+    <!-- Edit Association Modal -->
+    <dialog class="modal" :class="{ 'modal-open': isEditModalOpen }">
+         <div class="modal-box w-11/12 max-w-2xl bg-base-100">
+            <h3 class="font-bold text-2xl mb-6 text-center">{{ $t('comune.associations.edit_association_title') }}</h3>
+            
+            <form @submit.prevent="updateAssociazione" class="flex flex-col gap-4">
+                <div class="form-control">
+                    <label class="label">{{ $t('comune.associations.association_name') }}</label>
+                    <input v-model="editAssociazioneData.nome" type="text" class="input input-bordered w-full" required />
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">{{ $t('comune.associations.association_address') }}</label>
+                    <input v-model="editAssociazioneData.indirizzo" type="text" class="input input-bordered w-full" required />
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">{{ $t('comune.associations.association_phone') }}</label>
+                        <input v-model="editAssociazioneData.telefono" type="tel" class="input input-bordered w-full" required />
+                    </div>
+                    <div class="form-control">
+                        <label class="label">{{ $t('comune.associations.association_email') }}</label>
+                        <input v-model="editAssociazioneData.email" type="email" class="input input-bordered w-full" required />
+                    </div>
+                </div>
+
+                <div class="modal-action border-t border-base-200 pt-4 mt-4">
+                    <button type="button" @click="closeEditModal" class="btn btn-ghost">{{ $t('comune.associations.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary" :disabled="isSubmittingEdit">
+                        <span v-if="isSubmittingEdit" class="loading loading-spinner loading-sm"></span>
+                        {{ isSubmittingEdit ? $t('comune.associations.saving') : $t('comune.associations.save') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="closeEditModal">close</button>
         </form>
     </dialog>
 
