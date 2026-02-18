@@ -55,7 +55,8 @@
     "add_member_btn": "Aggiungi",
     "add_error": "Errore nell'aggiunta del membro",
     "already_comune": "L'utente è già membro di un Comune",
-    "not_citizen": "L'utente non è un Cittadino e non può essere promosso"
+    "not_citizen": "L'utente non è un Cittadino e non può essere promosso",
+    "update_error": "Errore nell'aggiornamento del membro"
   },
   "members_asso": {
     "title": "Membri dell'Associazione",
@@ -358,7 +359,10 @@
     "comune_role_removed": "Ruolo del Comune rimosso con successo",
     "comune_member_added": "Membro del Comune aggiunto con successo",
     "associazione_role_removed": "Ruolo dell'Associazione rimosso con successo",
-    "associazione_member_added": "Membro dell'Associazione aggiunto con successo"
+    "associazione_member_added": "Membro dell'Associazione aggiunto con successo",
+    "member_updated": "Membro aggiornato con successo",
+    "member_removed": "Membro rimosso con successo",
+    "member_added": "Membro aggiunto con successo"
   },
   "notFound": {
     "orto": "Orto non trovato",

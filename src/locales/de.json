@@ -55,7 +55,8 @@
     "add_member_btn": "Hinzufügen",
     "add_error": "Fehler beim Hinzufügen des Mitglieds",
     "already_comune": "Benutzer ist bereits Gemeinde-Mitglied",
-    "not_citizen": "Benutzer ist kein Bürger und kann nicht befördert werden"
+    "not_citizen": "Benutzer ist kein Bürger und kann nicht befördert werden",
+    "update_error": "Fehler beim Aktualisieren des Mitglieds"
   },
   "members_asso": {
     "title": "Vereinsmitglieder",
