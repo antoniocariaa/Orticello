@@ -319,6 +319,7 @@
     "request": "Request",
     "active_request_tooltip": "You already have an assigned lot and cannot make other requests",
     "no_lots_available": "Lots not available",
+    "not_available": "Not available",
     "total_size": "Total Size:",
     "lots_count": "Lots:",
     "details_lots": "Lot Details",

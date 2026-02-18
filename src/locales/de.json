@@ -299,6 +299,7 @@
     "request": "Anfragen",
     "active_request_tooltip": "Du hast bereits eine zugewiesene Parzelle und kannst keine weiteren Anfragen stellen",
     "no_lots_available": "Parzellen nicht verfügbar",
+    "not_available": "Nicht verfügbar",
     "total_size": "Gesamtgröße:",
     "lots_count": "Parzellen:",
     "details_lots": "Parzellen-Details",
