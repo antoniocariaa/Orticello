@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { store } from '../../store'
 import { 
-  Sprout, Grid, Users, Info, MapPin, Signal, SignalLow, Handshake 
+  Sprout, Grid, Users, Info, MapPin, Signal, SignalLow, Handshake, Mail, Phone 
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -14,6 +14,7 @@ const affidamenti = ref([]) // AffidaOrto
 const affidaLotti = ref([]) // AffidaLotti
 const lottiDetails = ref({}) // Cache for lotti details
 const users = ref([]) // Users cache
+const associationDetails = ref(null)
 
 // --- Fetching Data ---
 
@@ -69,8 +70,18 @@ const fetchUsers = async () => {
     }
 }
 
+const fetchAssociationDetails = async () => {
+    try {
+        if (!myAssociazioneId.value) return
+        const response = await api.get(`/associazioni/${myAssociazioneId.value}`)
+        associationDetails.value = response
+    } catch (e) {
+        console.error('Failed to fetch association details', e)
+    }
+}
+
 onMounted(async () => {
-    await Promise.all([fetchOrti(), fetchAffidamenti(), fetchAffidaLotti(), fetchUsers()])
+    await Promise.all([fetchOrti(), fetchAffidamenti(), fetchAffidaLotti(), fetchUsers(), fetchAssociationDetails()])
 })
 
 // --- Computed Properties ---
@@ -212,10 +223,30 @@ const openUserModal = (userId) => {
       
       <!-- HEADER -->
       <div class="w-full max-w-6xl">
-          <h1 class="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
-            {{ $t('association.dashboard.title') }} <Handshake class="w-8 h-8" />
-          </h1>
-          <p class="text-gray-600">{{ $t('association.dashboard.subtitle') }}</p>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+              <div>
+                  <h1 class="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
+                    {{ associationDetails ? associationDetails.nome : $t('association.dashboard.title') }} 
+                    <Handshake class="w-8 h-8" />
+                  </h1>
+                  <p class="text-gray-600">{{ $t('association.dashboard.subtitle') }}</p>
+              </div>
+              
+              <div v-if="associationDetails" class="flex flex-col gap-1 text-sm text-gray-600 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm min-w-[250px]">
+                  <div class="flex items-center gap-2">
+                      <MapPin class="w-4 h-4 text-primary" />
+                      <span>{{ associationDetails.indirizzo }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                      <Mail class="w-4 h-4 text-primary" />
+                      <span>{{ associationDetails.email }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                      <Phone class="w-4 h-4 text-primary" />
+                      <span>{{ associationDetails.telefono }}</span>
+                  </div>
+              </div>
+          </div>
       </div>
 
       <!-- METRICS CARDS -->
