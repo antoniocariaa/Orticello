@@ -6,7 +6,7 @@ import api from '@/services/api'
 import { 
   Bell, RefreshCw, Search, Users, Folder, Calendar, CheckCircle, 
   Plus, AlertCircle, Info, MoreVertical, Check, Circle, Pencil, Trash2, 
-  Building2, Sprout 
+  Building2, Sprout, Megaphone 
 } from 'lucide-vue-next'
 
 export default {
@@ -14,7 +14,7 @@ export default {
   components: {
     Bell, RefreshCw, Search, Users, Folder, Calendar, CheckCircle, 
     Plus, AlertCircle, Info, MoreVertical, Check, Circle, Pencil, Trash2, 
-    Building2, Sprout
+    Building2, Sprout, Megaphone
   },
   props: {
     title: {
@@ -34,11 +34,11 @@ export default {
       default: false
     },
     icon: {
-      type: Object,
+      type: [Object, String],
       default: null
     },
     buttonIcon: {
-      type: Object,
+      type: [Object, String],
       default: null
     }
   },

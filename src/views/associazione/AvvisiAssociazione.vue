@@ -1,5 +1,6 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { store } from '@/store'
 import api from '@/services/api'
 import AvvisiBacheca from '@/components/AvvisiBacheca.vue'
@@ -14,6 +15,7 @@ export default {
     Megaphone
   },
   setup() {
+    const { t } = useI18n()
     const avvisiBachecaRef = ref(null)
     const showModal = ref(false)
     const modalMode = ref('create') // 'create' | 'edit'
@@ -76,15 +78,15 @@ export default {
       const errors = {}
       
       if (!formData.value.titolo.trim()) {
-        errors.titolo = store.t('association.notices.title_mandatory')
+        errors.titolo = t('association.notices.title_mandatory')
       }
       
       if (!formData.value.messaggio.trim()) {
-        errors.messaggio = store.t('association.notices.message_mandatory')
+        errors.messaggio = t('association.notices.message_mandatory')
       }
       
       if (!formData.value.data) {
-        errors.data = store.t('association.notices.date_mandatory')
+        errors.data = t('association.notices.date_mandatory')
       }
       
       formErrors.value = errors
@@ -108,10 +110,10 @@ export default {
         
         if (modalMode.value === 'create') {
           await api.post('/avvisi', payload)
-          showToast(store.t('association.notices.notice_created'), 'success')
+          showToast(t('association.notices.notice_created'), 'success')
         } else {
           await api.put(`/avvisi/${currentAvviso.value._id}`, payload)
-          showToast(store.t('association.notices.notice_updated'), 'success')
+          showToast(t('association.notices.notice_updated'), 'success')
         }
         
         closeModal()
@@ -121,7 +123,7 @@ export default {
         }
       } catch (error) {
         console.error('Errore salvataggio avviso:', error)
-        showToast(error.message || store.t('association.notices.save_error'), 'error')
+        showToast(error.message || t('association.notices.save_error'), 'error')
       } finally {
         loading.value = false
       }
@@ -129,14 +131,10 @@ export default {
     
     // Elimina avviso
     const deleteAvviso = async (avviso) => {
-      if (!confirm(store.t('association.notices.delete_confirm', { title: avviso.titolo }))) {
-        return
-      }
-      
       loading.value = true
       try {
         await api.delete(`/avvisi/${avviso._id}`)
-        showToast(store.t('association.notices.notice_deleted'), 'success')
+        showToast(t('association.notices.notice_deleted'), 'success')
         
         // Ricarica gli avvisi
         if (avvisiBachecaRef.value) {
@@ -144,7 +142,7 @@ export default {
         }
       } catch (error) {
         console.error('Errore eliminazione avviso:', error)
-        showToast(error.message || store.t('association.notices.save_error'), 'error')
+        showToast(error.message || t('association.notices.save_error'), 'error')
       } finally {
         loading.value = false
       }
@@ -163,7 +161,9 @@ export default {
       saveAvviso,
       deleteAvviso,
       toast,
-      store
+      store,
+      Plus,
+      Pencil
     }
   }
 }
@@ -181,7 +181,7 @@ export default {
       @add="openCreateModal"
       @edit="openEditModal"
       @delete="deleteAvviso"
-      :icon="Megaphone"
+      icon="Megaphone"
     />
     
     <!-- Modale per creare/modificare avviso -->

@@ -116,6 +116,12 @@ const changeLanguage = (lang) => {
             {{ $t('nav.requests') }}
           </router-link>
         </li>
+        <li>
+          <router-link to="/associazione/membri" active-class="active" class="font-medium">
+            <Users class="w-4 h-4" />
+            {{ $t('nav.members') }}
+          </router-link>
+        </li>
       </ul>
     </div>
 
@@ -214,6 +220,11 @@ const changeLanguage = (lang) => {
       <router-link to="/associazione/bandi" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
         <span class="text-2xl mb-1">📜</span>
         <span class="text-[10px] font-medium leading-none">{{ $t('nav.tenders_short') }}</span>
+      </router-link>
+
+      <router-link to="/associazione/membri" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
+        <span class="text-2xl mb-1">👥</span>
+        <span class="text-[10px] font-medium leading-none">{{ $t('nav.members_short') }}</span>
       </router-link>
 
       <router-link to="/profile" class="dock-item flex flex-col items-center justify-center p-2 rounded-xl hover:bg-base-200 transition-colors" active-class="bg-primary/10 text-primary">
