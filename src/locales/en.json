@@ -331,7 +331,12 @@
     "request_sent_toast": "Request sent for lot in {name}",
     "error_request_toast": "Error during request. Try again later.",
     "already_requested_toast": "Request already made for this Lot",
-    "user_not_identified_toast": "Error: User not identified. Please login."
+    "user_not_identified_toast": "Error: User not identified. Please login.",
+    "search_placeholder": "Search by name or address...",
+    "filter_all": "All",
+    "filter_with_sensors": "With sensors",
+    "filter_without_sensors": "Without sensors",
+    "no_results": "No gardens found with selected filters."
   },
   "dashboard": {
     "title": "Municipality Dashboard",
@@ -1012,7 +1017,31 @@
       "creating": "Saving...",
       "fill_required": "Fill all required fields.",
       "created_success": "Association created successfully!",
-      "creation_error": "Error during creation."
+      "creation_error": "Error during creation.",
+      "view_members": "View Members",
+      "members_of": "Members of",
+      "no_members_found": "No members found.",
+      "member_name": "Name",
+      "member_email": "Email",
+      "member_phone": "Phone",
+      "member_role": "Role",
+      "error_loading_members": "Error loading members.",
+      "add_member": "Add Member",
+      "add_member_title": "Add Member to Association",
+      "add_member_desc": "Add a new member to {name} by entering the user's email.",
+      "member_email_placeholder": "email@example.com",
+      "member_is_admin": "Is Association Administrator?",
+      "add": "Add",
+      "actions": "Actions",
+      "edit_member": "Edit Member",
+      "edit_member_title": "Edit Member",
+      "remove_member": "Remove Member",
+      "confirm_remove_member": "Are you sure you want to remove this member from the association?",
+      "update": "Update",
+      "member_updated": "Member updated successfully.",
+      "member_removed": "Member removed successfully.",
+      "update_error": "Error during update.",
+      "remove_error": "Error during removal."
     },
     "notices": {
       "title": "Municipality Notices",
@@ -1108,8 +1137,14 @@
       "saving": "Saving...",
       "orto_created": "Garden created successfully!",
       "orto_updated": "Garden updated successfully!",
+      "orto_deleted": "Garden deleted successfully!",
       "error_saving": "Error during save:",
-      "dates_required": "Start and end dates required to assign an association"
+      "error_deleting": "Error during deletion: ",
+      "dates_required": "Start and end dates required to assign an association",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "delete_orto_confirm": "Confirm Garden Deletion",
+      "delete_orto_message": "Are you sure you want to delete the garden '{name}'? This action will also delete all associated lots and cannot be undone."
     }
   }
 }

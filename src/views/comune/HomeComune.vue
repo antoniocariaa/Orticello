@@ -55,6 +55,7 @@ const getCurrentAssignment = (ortoId) => {
     const oIdStr = String(ortoId)
     const now = new Date()
     return affidamenti.value.find(a => {
+        if (!a.orto) return false
         const aOId = typeof a.orto === 'object' ? (a.orto._id || a.orto.id) : a.orto
         const startDate = new Date(a.data_inizio)
         const endDate = new Date(a.data_fine)

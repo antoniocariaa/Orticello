@@ -6,7 +6,7 @@ import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
 import L from 'leaflet'
-import { Search, Map, List, MapPin, Info, Check, X } from 'lucide-vue-next'
+import { Search, Map, List, MapPin, Info, Check, X, Filter } from 'lucide-vue-next'
 
 const { t } = useI18n()
 
@@ -16,6 +16,10 @@ const orti = ref([])
 const affidamenti = ref([])
 const associazioni = ref([]) 
 const lottiDetails = ref({}) // Cache for lotti details: { lottoId: lottoData }
+
+// Filters
+const searchQuery = ref('')
+const sensorFilter = ref('all') // 'all' | 'with' | 'without'
 
 // Icons
 const redIcon = new L.Icon({
@@ -229,7 +233,24 @@ const getStatus = (ortoId) => {
 }
 
 const filteredOrti = computed(() => {
-    return orti.value.filter(orto => getStatus(orto._id || orto.id) !== 'available')
+    return orti.value
+        .filter(orto => getStatus(orto._id || orto.id) !== 'available')
+        .filter(orto => {
+            // Name / address filter
+            if (searchQuery.value.trim()) {
+                const q = searchQuery.value.trim().toLowerCase()
+                const nome = (orto.nome || '').toLowerCase()
+                const indirizzo = (orto.indirizzo || '').toLowerCase()
+                if (!nome.includes(q) && !indirizzo.includes(q)) return false
+            }
+            // Sensor filter
+            if (sensorFilter.value !== 'all' && orto.lotti?.length) {
+                const hasSensors = orto.lotti.some(l => getLottoData(l).sensori === true)
+                if (sensorFilter.value === 'with' && !hasSensors) return false
+                if (sensorFilter.value === 'without' && hasSensors) return false
+            }
+            return true
+        })
 })
 
 const getTotalSize = (orto) => {
@@ -330,6 +351,27 @@ const checkAndRequest = (lotto, orto) => {
                </h1>
                <p class="text-sm opacity-70">{{ $t('search.subtitle') }}</p>
                
+               <!-- Filters -->
+               <div class="flex flex-wrap gap-3 items-center w-full">
+                   <div class="relative flex-1 min-w-[200px] max-w-sm">
+                       <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
+                       <input 
+                           v-model="searchQuery"
+                           type="text" 
+                           :placeholder="$t('search.search_placeholder')"
+                           class="input input-bordered input-sm w-full pl-9"
+                       />
+                   </div>
+                   <div class="flex items-center gap-2">
+                       <Filter class="w-4 h-4 opacity-50" />
+                       <select v-model="sensorFilter" class="select select-bordered select-sm">
+                           <option value="all">{{ $t('search.filter_all') }}</option>
+                           <option value="with">{{ $t('search.filter_with_sensors') }}</option>
+                           <option value="without">{{ $t('search.filter_without_sensors') }}</option>
+                       </select>
+                   </div>
+               </div>
+
                <div class="flex flex-wrap gap-4 items-center">
                    <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
@@ -518,7 +560,7 @@ const checkAndRequest = (lotto, orto) => {
           </div>
           
            <div v-if="filteredOrti.length === 0" class="col-span-full text-center py-10 opacity-50">
-              {{ $t('search.no_orti_available') }}
+              {{ (searchQuery.trim() || sensorFilter !== 'all') ? $t('search.no_results') : $t('search.no_orti_available') }}
           </div>
       </div>
 

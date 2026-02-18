@@ -5,7 +5,7 @@ import api from '../../services/api'
 import { store } from '../../store'
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "@vue-leaflet/vue-leaflet"
-import { Map, List, MapPin, Check, X } from 'lucide-vue-next'
+import { Map, List, MapPin, Check, X, Search, Filter } from 'lucide-vue-next'
 import L from 'leaflet'
 
 const { t } = useI18n()
@@ -16,6 +16,10 @@ const orti = ref([])
 const affidamenti = ref([])
 const associazioni = ref([]) 
 const lottiDetails = ref({}) // Cache for lotti details: { lottoId: lottoData }
+
+// Filters
+const searchQuery = ref('')
+const sensorFilter = ref('all') // 'all' | 'with' | 'without'
 
 // Icons
 const redIcon = new L.Icon({
@@ -153,6 +157,25 @@ const openDetailsModal = (orto) => {
 
 const viewMode = ref('map') // 'map' or 'list'
 
+const filteredOrti = computed(() => {
+    return orti.value.filter(orto => {
+        // Name / address filter
+        if (searchQuery.value.trim()) {
+            const q = searchQuery.value.trim().toLowerCase()
+            const nome = (orto.nome || '').toLowerCase()
+            const indirizzo = (orto.indirizzo || '').toLowerCase()
+            if (!nome.includes(q) && !indirizzo.includes(q)) return false
+        }
+        // Sensor filter
+        if (sensorFilter.value !== 'all' && orto.lotti?.length) {
+            const hasSensors = orto.lotti.some(l => getLottoData(l).sensori === true)
+            if (sensorFilter.value === 'with' && !hasSensors) return false
+            if (sensorFilter.value === 'without' && hasSensors) return false
+        }
+        return true
+    })
+})
+
 
 </script>
 
@@ -164,6 +187,27 @@ const viewMode = ref('map') // 'map' or 'list'
            <div class="flex flex-col gap-3">
                <h1 class="text-3xl font-bold text-primary">{{ $t('association.gardens.title') }}</h1>
                
+               <!-- Filters -->
+               <div class="flex flex-wrap gap-3 items-center w-full">
+                   <div class="relative flex-1 min-w-[200px] max-w-sm">
+                       <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
+                       <input 
+                           v-model="searchQuery"
+                           type="text" 
+                           :placeholder="$t('search.search_placeholder')"
+                           class="input input-bordered input-sm w-full pl-9"
+                       />
+                   </div>
+                   <div class="flex items-center gap-2">
+                       <Filter class="w-4 h-4 opacity-50" />
+                       <select v-model="sensorFilter" class="select select-bordered select-sm">
+                           <option value="all">{{ $t('search.filter_all') }}</option>
+                           <option value="with">{{ $t('search.filter_with_sensors') }}</option>
+                           <option value="without">{{ $t('search.filter_without_sensors') }}</option>
+                       </select>
+                   </div>
+               </div>
+
                <div class="flex flex-wrap gap-4 items-center">
                    <!-- Legend -->
                     <div class="flex gap-4 text-xs font-medium bg-base-100 p-2 rounded-lg shadow-sm">
@@ -209,7 +253,7 @@ const viewMode = ref('map') // 'map' or 'list'
             ></l-tile-layer>
 
             <l-marker 
-                v-for="orto in orti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
+                v-for="orto in filteredOrti.filter(o => o.geometry?.coordinates?.[0] && o.geometry?.coordinates?.[1])" 
                 :key="orto._id || orto.id"
                 :lat-lng="[orto.geometry.coordinates[1], orto.geometry.coordinates[0]]"
             >
@@ -294,7 +338,7 @@ const viewMode = ref('map') // 'map' or 'list'
 
     <!-- List View -->
       <div v-if="viewMode === 'list'" class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-          <div v-for="orto in orti" :key="orto._id || orto.id" class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow">
+          <div v-for="orto in filteredOrti" :key="orto._id || orto.id" class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow">
             <div class="card-body p-6 h-full flex flex-col">
                 <!-- Status Badge -->
                 <div class="mb-2">
@@ -347,8 +391,8 @@ const viewMode = ref('map') // 'map' or 'list'
             </div>
           </div>
           
-           <div v-if="orti.length === 0" class="col-span-full text-center py-10 opacity-50">
-              {{ $t('association.gardens.not_found') }}
+           <div v-if="filteredOrti.length === 0" class="col-span-full text-center py-10 opacity-50">
+              {{ (searchQuery.trim() || sensorFilter !== 'all') ? $t('search.no_results') : $t('association.gardens.not_found') }}
           </div>
       </div>
 
