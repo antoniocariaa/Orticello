@@ -56,9 +56,13 @@ export default {
             body: JSON.stringify(body),
         });
     },
-    delete(endpoint) {
-        return request(endpoint, {
+    delete(endpoint, body) {
+        const options = {
             method: 'DELETE',
-        });
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        return request(endpoint, options);
     },
 };
