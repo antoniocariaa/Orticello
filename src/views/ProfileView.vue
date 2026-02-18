@@ -32,9 +32,11 @@ const passwordSuccess = ref('')
 
 // Delete Account logic
 const showDeleteModal = ref(false)
+const deleteError = ref('')
 const deleteConfirmationInput = ref('')
+const deletePassword = ref('')
 const expectedConfirmation = computed(() => t('nav.confirm_deletion_phrase'))
-const canDelete = computed(() => deleteConfirmationInput.value === expectedConfirmation.value)
+const canDelete = computed(() => deleteConfirmationInput.value === expectedConfirmation.value && deletePassword.value.length > 0)
 
 onMounted(() => {
   if (store.user) {
@@ -102,11 +104,15 @@ const updatePassword = async () => {
 const openDeleteModal = () => {
   showDeleteModal.value = true
   deleteConfirmationInput.value = ''
+  deletePassword.value = ''
+  deleteError.value = ''
 }
 
 const closeDeleteModal = () => {
   showDeleteModal.value = false
   deleteConfirmationInput.value = ''
+  deletePassword.value = ''
+  deleteError.value = ''
 }
 
 const deleteAccount = async () => {
@@ -116,12 +122,16 @@ const deleteAccount = async () => {
     const userId = store.user?.id || store.user?._id
     if (!userId) throw new Error("User ID not found")
       
-    await api.delete(`/utenti/${userId}`)
+    await api.delete(`/utenti/${userId}`, { password: deletePassword.value })
     closeDeleteModal()
     logout()
   } catch (err) {
     console.error(err)
-    alert(t('errors.deleting_utente'))
+    if (err.status === 401) {
+      deleteError.value = t('errors.authentication_error')
+    } else {
+      deleteError.value = err.message || t('errors.deleting_utente')
+    }
   }
 }
 
@@ -299,8 +309,28 @@ const changeLanguage = (lang) => {
             v-model="deleteConfirmationInput" 
             :placeholder="expectedConfirmation"
             class="input input-bordered w-full" 
-            @keyup.enter="deleteAccount"
           />
+        </div>
+
+        <div class="form-control w-full mt-4">
+          <label class="label">
+            <span class="label-text">
+              {{ t('nav.current_password') }}
+            </span>
+          </label>
+          <input 
+            type="password" 
+            v-model="deletePassword" 
+            :placeholder="t('nav.current_password')"
+            class="input input-bordered w-full" 
+            @keyup.enter="deleteAccount"
+            required
+          />
+        </div>
+
+        <!-- Delete Error Message -->
+        <div v-if="deleteError" class="alert alert-error text-sm py-2 mt-4">
+          {{ deleteError }}
         </div>
 
         <div class="modal-action">
