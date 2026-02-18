@@ -706,7 +706,7 @@
       "add_member": "Aggiungi Membro",
       "add_member_title": "Aggiungi Membro all'Associazione",
       "add_member_desc": "Aggiungi un nuovo membro a {name} inserendo l'email dell'utente.",
-      "member_email_placeholder": "email@esempio.com",
+      "member_email_placeholder": "esempio@email.com",
       "member_is_admin": "È Amministratore dell'Associazione?",
       "add": "Aggiungi",
       "actions": "Azioni",
@@ -718,7 +718,18 @@
       "member_updated": "Membro aggiornato con successo.",
       "member_removed": "Membro rimosso con successo.",
       "update_error": "Errore durante l'aggiornamento.",
-      "remove_error": "Errore durante la rimozione."
+      "remove_error": "Errore durante la rimozione.",
+      "edit_association_title": "Modifica Associazione",
+      "saving": "Salvataggio...",
+      "save": "Salva",
+      "updated_success": "Associazione aggiornata con successo!",
+      "edit": "Modifica",
+      "delete": "Elimina",
+      "deleting": "Eliminazione...",
+      "delete_association_confirm": "Sei sicuro di voler eliminare l'associazione \"{name}\"? Questa azione è irreversibile e rimuoverà tutti i membri e gli affidamenti associati.",
+      "gardens_short": "Orti",
+      "lots": "Lotti",
+      "delete_confirm_title": "Conferma Eliminazione"
     },
     "notices": {
       "title": "Avvisi Comune",
