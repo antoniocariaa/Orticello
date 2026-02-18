@@ -14,7 +14,8 @@ const router = useRouter()
 // --- State ---
 const orti = ref([])
 const affidamenti = ref([]) 
-const users = ref([]) 
+const users = ref([])
+const associazioni = ref([])
 const loading = ref(false)
 const error = ref(null)
 
@@ -29,15 +30,17 @@ const fetchData = async () => {
     loading.value = true
     error.value = null
     try {
-        const [resOrti, resAffidi, resUsers] = await Promise.all([
+        const [resOrti, resAffidi, resUsers, resAssoc] = await Promise.all([
             api.get('/orti'),
             api.get('/affidaOrti'),
-            api.get('/utenti')
+            api.get('/utenti'),
+            api.get('/associazioni')
         ])
         
         orti.value = Array.isArray(resOrti) ? resOrti : (resOrti.data || [])
         affidamenti.value = Array.isArray(resAffidi) ? resAffidi : (resAffidi.data || [])
         users.value = Array.isArray(resUsers) ? resUsers : (resUsers.data || [])
+        associazioni.value = Array.isArray(resAssoc) ? resAssoc : (resAssoc.data || [])
     } catch (e) {
         console.error('Errore caricamento dati dashboard', e)
         error.value = '$t("comune.home.error_loading")'
@@ -92,7 +95,7 @@ const formatDate = (d) => {
 // --- Computed Properties ---
 
 const totalOrti = computed(() => orti.value.length)
-const totalAssociazioni = computed(() => users.value.filter(u => u.tipo === 'asso').length)
+const totalAssociazioni = computed(() => associazioni.value.length)
 
 const ortiNonAssegnati = computed(() => {
     return orti.value.filter(o => !getCurrentAssignment(o._id || o.id)).length
