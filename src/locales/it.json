@@ -202,7 +202,12 @@
     "request_sent_toast": "Richiesta inviata per il lotto in {name}",
     "error_request_toast": "Errore durante la richiesta. Riprova più tardi.",
     "already_requested_toast": "Richiesta già effettuata per questo Lotto",
-    "user_not_identified_toast": "Errore: Utente non identificato. Effettua il login."
+    "user_not_identified_toast": "Errore: Utente non identificato. Effettua il login.",
+    "search_placeholder": "Cerca per nome o indirizzo...",
+    "filter_all": "Tutti",
+    "filter_with_sensors": "Con sensori",
+    "filter_without_sensors": "Senza sensori",
+    "no_results": "Nessun orto trovato con i filtri selezionati."
   },
   "dashboard": {
     "title": "Dashboard Comune",

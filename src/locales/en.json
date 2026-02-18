@@ -331,7 +331,12 @@
     "request_sent_toast": "Request sent for lot in {name}",
     "error_request_toast": "Error during request. Try again later.",
     "already_requested_toast": "Request already made for this Lot",
-    "user_not_identified_toast": "Error: User not identified. Please login."
+    "user_not_identified_toast": "Error: User not identified. Please login.",
+    "search_placeholder": "Search by name or address...",
+    "filter_all": "All",
+    "filter_with_sensors": "With sensors",
+    "filter_without_sensors": "Without sensors",
+    "no_results": "No gardens found with selected filters."
   },
   "dashboard": {
     "title": "Municipality Dashboard",

@@ -311,7 +311,12 @@
     "request_sent_toast": "Anfrage für Parzelle in {name} gesendet",
     "error_request_toast": "Fehler bei der Anfrage. Versuche es später erneut.",
     "already_requested_toast": "Anfrage für diese Parzelle bereits gestellt",
-    "user_not_identified_toast": "Fehler: Benutzer nicht identifiziert. Bitte einloggen."
+    "user_not_identified_toast": "Fehler: Benutzer nicht identifiziert. Bitte einloggen.",
+    "search_placeholder": "Nach Name oder Adresse suchen...",
+    "filter_all": "Alle",
+    "filter_with_sensors": "Mit Sensoren",
+    "filter_without_sensors": "Ohne Sensoren",
+    "no_results": "Keine Gärten mit den ausgewählten Filtern gefunden."
   },
   "dashboard": {
     "title": "Gemeinde-Dashboard",
