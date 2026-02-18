@@ -39,6 +39,24 @@
     "delete_confirm": "Löschung bestätigen",
     "view_details": "Details ansehen"
   },
+  "members": {
+    "title": "Gemeinde-Mitglieder",
+    "no_members": "Keine Mitglieder gefunden.",
+    "remove_role": "Rolle entfernen",
+    "remove_role_title": "Gemeinde-Rolle entfernen",
+    "remove_role_confirm": "Sind Sie sicher, dass Sie die Gemeinde-Rolle von {name} entfernen möchten? Der Benutzer wird zum Bürger.",
+    "remove_role_btn": "Rolle entfernen",
+    "remove_error": "Fehler beim Entfernen der Rolle",
+    "add_member": "Mitglied hinzufügen",
+    "add_member_title": "Gemeinde-Mitglied hinzufügen",
+    "add_member_email": "E-Mail des Benutzers",
+    "add_member_email_placeholder": "E-Mail des Benutzers eingeben",
+    "add_member_admin": "Administrator",
+    "add_member_btn": "Hinzufügen",
+    "add_error": "Fehler beim Hinzufügen des Mitglieds",
+    "already_comune": "Benutzer ist bereits Gemeinde-Mitglied",
+    "not_citizen": "Benutzer ist kein Bürger und kann nicht befördert werden"
+  },
   "members_asso": {
     "title": "Vereinsmitglieder",
     "no_members": "Keine Mitglieder gefunden.",
@@ -992,7 +1010,31 @@
       "creating": "Wird gespeichert...",
       "fill_required": "Fülle alle Pflichtfelder aus.",
       "created_success": "Verein erfolgreich erstellt!",
-      "creation_error": "Fehler bei der Erstellung."
+      "creation_error": "Fehler bei der Erstellung.",
+      "view_members": "Mitglieder ansehen",
+      "members_of": "Mitglieder von",
+      "no_members_found": "Keine Mitglieder gefunden.",
+      "member_name": "Name",
+      "member_email": "E-Mail",
+      "member_phone": "Telefon",
+      "member_role": "Rolle",
+      "error_loading_members": "Fehler beim Laden der Mitglieder.",
+      "add_member": "Mitglied hinzufügen",
+      "add_member_title": "Mitglied zum Verein hinzufügen",
+      "add_member_desc": "Füge ein neues Mitglied zu {name} hinzu, indem du die E-Mail des Benutzers eingibst.",
+      "member_email_placeholder": "email@beispiel.com",
+      "member_is_admin": "Ist Vereinsadministrator?",
+      "add": "Hinzufügen",
+      "actions": "Aktionen",
+      "edit_member": "Mitglied bearbeiten",
+      "edit_member_title": "Mitglied bearbeiten",
+      "remove_member": "Mitglied entfernen",
+      "confirm_remove_member": "Bist du sicher, dass du dieses Mitglied aus dem Verein entfernen möchtest?",
+      "update": "Aktualisieren",
+      "member_updated": "Mitglied erfolgreich aktualisiert.",
+      "member_removed": "Mitglied erfolgreich entfernt.",
+      "update_error": "Fehler bei der Aktualisierung.",
+      "remove_error": "Fehler beim Entfernen."
     },
     "notices": {
       "title": "Gemeinde-Mitteilungen",
@@ -1088,8 +1130,14 @@
       "saving": "Wird gespeichert...",
       "orto_created": "Garten erfolgreich erstellt!",
       "orto_updated": "Garten erfolgreich aktualisiert!",
+      "orto_deleted": "Garten erfolgreich gelöscht!",
       "error_saving": "Fehler beim Speichern:",
-      "dates_required": "Start- und Enddatum erforderlich, um einen Verein zuzuweisen"
+      "error_deleting": "Fehler beim Löschen: ",
+      "dates_required": "Start- und Enddatum erforderlich, um einen Verein zuzuweisen",
+      "delete": "Löschen",
+      "deleting": "Löschen...",
+      "delete_orto_confirm": "Gartenlöschung bestätigen",
+      "delete_orto_message": "Bist du sicher, dass du den Garten '{name}' löschen möchtest? Diese Aktion löscht auch alle zugehörigen Parzellen und kann nicht rückgängig gemacht werden."
     }
   }
 }

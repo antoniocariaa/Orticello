@@ -809,8 +809,14 @@
       "saving": "Salvataggio...",
       "orto_created": "Orto creato con successo!",
       "orto_updated": "Orto modificato con successo!",
+      "orto_deleted": "Orto eliminato con successo!",
       "error_saving": "Errore durante il salvataggio:",
-      "dates_required": "Date inizio e fine obbligatorie per assegnare un'associazione"
+      "error_deleting": "Errore durante l'eliminazione: ",
+      "dates_required": "Date inizio e fine obbligatorie per assegnare un'associazione",
+      "delete": "Elimina",
+      "deleting": "Eliminazione...",
+      "delete_orto_confirm": "Conferma Eliminazione Orto",
+      "delete_orto_message": "Sei sicuro di voler eliminare l'orto '{name}'? Questa azione eliminerà anche tutti i lotti associati e non può essere annullata."
     }
   },
   "modals": {
