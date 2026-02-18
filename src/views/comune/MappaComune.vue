@@ -315,6 +315,27 @@ const deleteOrto = async () => {
     try {
         const ortoId = ortoToDelete.value._id || ortoToDelete.value.id
         
+        // First, revoke all lot assignments for this orto
+        if (ortoToDelete.value.lotti && ortoToDelete.value.lotti.length > 0) {
+            // Get all lot assignments
+            const affidamentiLotti = await api.get('/affidaLotti')
+            const affidamentiArray = Array.isArray(affidamentiLotti) ? affidamentiLotti : (affidamentiLotti.data || [])
+            
+            // Find and delete assignments for lots of this orto
+            for (const lotto of ortoToDelete.value.lotti) {
+                const lottoId = lotto._id || lotto.id || lotto
+                const assignment = affidamentiArray.find(a => {
+                    const aLottoId = typeof a.lotto === 'object' ? (a.lotto._id || a.lotto.id) : a.lotto
+                    return String(aLottoId) === String(lottoId)
+                })
+                
+                if (assignment) {
+                    const assignmentId = assignment._id || assignment.id
+                    await api.delete(`/affidaLotti/${assignmentId}`)
+                }
+            }
+        }
+        
         // Delete the orto using the API
         await api.delete(`/orti/${ortoId}`)
         
