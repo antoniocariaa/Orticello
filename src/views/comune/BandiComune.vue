@@ -132,7 +132,7 @@ onMounted(() => {
 <template>
   <div class="container mx-auto p-4">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-0">
-      <h1 class="text-3xl font-bold text-primary">{{ $t('comune.tenders.title') }}</h1>
+      <h1 class="text-3xl font-bold text-primary">{{ $t('comune.tenders.title_tender') }}</h1>
       <button @click="openModal()" class="btn btn-primary w-full sm:w-auto">
         + {{ $t('comune.tenders.new_tender') }}
       </button>
