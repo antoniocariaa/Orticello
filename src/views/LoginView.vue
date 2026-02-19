@@ -217,9 +217,9 @@ onMounted(() => {
               </svg>
             </button>
           </div>
-          <label class="label">
+          <!-- <label class="label">
             <a href="#" class="label-text-alt link link-hover">{{ $t('auth.forgot_password') }}</a>
-          </label>
+          </label> -->
         </div>
 
         <div v-if="error" role="alert" class="alert alert-error text-sm mt-4">
